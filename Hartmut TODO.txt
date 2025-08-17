@@ -1,0 +1,10 @@
+Hartmut Excel TODO:
+
+- Quelle als Spalte dazu
+- Stundensatz im HA Sheet speichern und reinziehen
+- Sichtbarkeit der Stundensätze schützen oder verschleiern
+- MASheet als separate Dateien separieren im Format XLSX
+- Makro schützen
+- Zeilen ID verstecken
+- Option: Name Reiter mit Liste von MD-Nr und multiplen Namen zum leichteren Abgleich
+
