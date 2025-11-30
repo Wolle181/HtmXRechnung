@@ -1,0 +1,5 @@
+# BEDIENUNG
+
+- "Prüfe Name anhand de MD-Nr auf Eindeutigkeit": Ein ausgewählter Name in der Namens-Listbox wird daraufhin geprüft, ob er eine einzige MD-Nr. hat oder evtl. mehrere (z.B. "Bender").
+- Auch wenn der Name keine eindeutige MD-Nr. hat, kann die Liste der nicht abgerechneten Positionen erstellt werden.
+
