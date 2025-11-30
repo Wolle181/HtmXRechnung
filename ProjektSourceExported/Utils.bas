@@ -27,7 +27,7 @@ Public Function DoesAbrSheetExist() As Boolean
     ' Existenz eines ABR-Tempblatts prüfen (mit WORKSHEET_PREFIX_FOR_ABRECHNUNG beginnend)
     Dim ws As Worksheet
     For Each ws In ThisWorkbook.Worksheets
-        If UCase$(Left$(ws.Name, 4)) = WORKSHEET_PREFIX_FOR_ABRECHNUNG Then
+        If UCase$(Left$(ws.name, 4)) = WORKSHEET_PREFIX_FOR_ABRECHNUNG Then
             DoesAbrSheetExist = True
             Exit Function
         End If
@@ -122,7 +122,7 @@ End Function
 Public Function GetAbrSheet() As Worksheet
     Dim ws As Worksheet
     For Each ws In ThisWorkbook.Worksheets
-        If UCase$(Left$(ws.Name, Len(WORKSHEET_PREFIX_FOR_ABRECHNUNG))) = WORKSHEET_PREFIX_FOR_ABRECHNUNG Then
+        If UCase$(Left$(ws.name, Len(WORKSHEET_PREFIX_FOR_ABRECHNUNG))) = WORKSHEET_PREFIX_FOR_ABRECHNUNG Then
             Set GetAbrSheet = ws
             Exit Function
         End If
@@ -201,7 +201,7 @@ Public Sub FormatHeader(wsDest As Worksheet, headerRange As String)
     ' Formatting des Headers (fett, Linien)
     wsDest.Range(headerRange).Select
     With Selection.Font
-        .Name = "Arial"
+        .name = "Arial"
         .FontStyle = "Fett"
         .Size = 10
         .Underline = xlUnderlineStyleNone
@@ -257,3 +257,12 @@ Public Function SheetExists(sheetName As String) As Boolean
     On Error GoTo 0
 End Function
 
+Public Sub DeleteTabsheet(name As String)
+    Application.DisplayAlerts = False ' Verhindert Rückfragen beim Löschen
+
+    On Error Resume Next
+    Sheets(name).Delete
+    On Error GoTo 0
+    
+    Application.DisplayAlerts = True
+End Sub

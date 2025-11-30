@@ -82,7 +82,7 @@ Public Function CollectUniqueMdNames() As Collection
 
     ' 1) Lokale MA-Sheets im aktuellen Workbook
     For Each ws In ThisWorkbook.Worksheets
-        If Utils.SheetNameIsMA(ws.Name) Then
+        If Utils.SheetNameIsMA(ws.name) Then
             CollectMdNamesFromMaSheet ws, result
         End If
     Next ws
@@ -189,7 +189,7 @@ Private Sub ProcessMaFilesInFolderForMdNames(ByVal folder As Object, _
     ' Dateien im aktuellen Ordner
     For Each file In folder.Files
         ' nur MA_*.xlsx berücksichtigen (keine .xlsm)
-        If LCase$(file.Name) Like "ma_*.xlsx" Then
+        If LCase$(file.name) Like "ma_*.xlsx" Then
             CollectMdNamesFromExternalWorkbook CStr(file.Path), xlApp, result
         End If
     Next file
@@ -213,7 +213,7 @@ Private Sub CollectMdNamesFromExternalWorkbook(ByVal filePath As String, _
 
     ' In der externen Mappe alle "MA"-Sheets verarbeiten
     For Each ws In wb.Worksheets
-        If Utils.SheetNameIsMA(ws.Name) Then
+        If Utils.SheetNameIsMA(ws.name) Then
             CollectMdNamesFromMaSheet ws, result
         End If
     Next ws
@@ -246,7 +246,7 @@ Public Function IsUniqueMDName(ByVal byName As String) As Boolean
     End If
 
     For Each ws In ThisWorkbook.Worksheets
-        If Utils.SheetNameIsMA(ws.Name) Then
+        If Utils.SheetNameIsMA(ws.name) Then
             lastCol = ws.Cells(hdrRow, ws.Columns.Count).End(xlToLeft).Column
             If lastCol = 0 Then GoTo NextWs
 

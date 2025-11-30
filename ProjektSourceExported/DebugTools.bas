@@ -14,7 +14,7 @@ Public Sub ExportAllVbaModules()
     For Each vbComp In ThisWorkbook.VBProject.VBComponents
         Select Case vbComp.Type
             Case 1, 2, 3 ' 1=Standardmodul, 2=Klassenmodul, 3=UserForm
-                vbComp.Export exportPath & vbComp.Name & "." & GetFileExtension(vbComp.Type)
+                vbComp.Export exportPath & vbComp.name & "." & GetFileExtension(vbComp.Type)
         End Select
     Next vbComp
 

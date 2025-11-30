@@ -3,7 +3,6 @@ Option Explicit
 
 Public Sub SucheNichtAbgerechnetePositionen(ByVal key As String, ByVal byName As Boolean)
     On Error GoTo EH
-    Wartebox.ShowToast "Suche gewünschte Positionen in allen Zeiterfassungsdateien"
 
     Dim wsDest As Worksheet
     Dim abrName As String
@@ -18,10 +17,12 @@ Public Sub SucheNichtAbgerechnetePositionen(ByVal key As String, ByVal byName As
         Exit Sub
     End If
 
+    Wartebox.ShowToast "Suche gewünschte Positionen in allen Zeiterfassungsdateien"
+
     ' 2) Neues ABR-Sheet anlegen
     abrName = WORKSHEET_PREFIX_FOR_ABRECHNUNG & Format(Now, "yyyymmdd_HhNnSs")
     Set wsDest = ThisWorkbook.Worksheets.Add(After:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.Count))
-    wsDest.Name = abrName
+    wsDest.name = abrName
 
     destRow = 1           ' nächste freie Zeile im ABR-Sheet
     baseLastCol = 0       ' letzte "Daten"-Spalte (ohne "abzurechnen")
@@ -44,6 +45,8 @@ Public Sub SucheNichtAbgerechnetePositionen(ByVal key As String, ByVal byName As
         AppendUnbilledPositionsFromExternalMaFiles basePath, wsDest, key, byName, destRow, baseLastCol, headerCopied
     End If
 
+    Wartebox.CloseToast
+
     ' 4) Feedback / ggf. leeres ABR-Sheet wieder löschen
     If destRow <= 1 Then
         Application.DisplayAlerts = False
@@ -52,7 +55,6 @@ Public Sub SucheNichtAbgerechnetePositionen(ByVal key As String, ByVal byName As
         MsgBox "Keine passenden, nicht abgerechneten Positionen gefunden.", vbInformation
     End If
     
-    Wartebox.CloseToast
     Exit Sub
 
 EH:
@@ -167,7 +169,7 @@ Private Sub ProcessMaFilesInFolder(ByVal folder As Object, _
     ' Dateien im aktuellen Ordner
     For Each file In folder.Files
         ' nur MA_*.xlsx berücksichtigen (keine .xlsm)
-        If LCase$(file.Name) Like "ma_*.xlsx" Then
+        If LCase$(file.name) Like "ma_*.xlsx" Then
             ProcessSingleMaWorkbook CStr(file.Path), xlApp, wsDest, key, byName, destRow, baseLastCol, headerCopied
         End If
     Next file
@@ -201,7 +203,7 @@ Private Sub ProcessSingleMaWorkbook(ByVal filePath As String, _
 
     ' In der externen Mappe alle WORKSHEET_PREFIX_TO_COLLECT-Sheets verarbeiten
     For Each ws In wb.Worksheets
-        If UCase$(Left$(ws.Name, Len(WORKSHEET_PREFIX_TO_COLLECT))) = WORKSHEET_PREFIX_TO_COLLECT Then
+        If UCase$(Left$(ws.name, Len(WORKSHEET_PREFIX_TO_COLLECT))) = WORKSHEET_PREFIX_TO_COLLECT Then
             AppendUnbilledPositionsFromMaSheet ws, wsDest, key, byName, destRow, baseLastCol, headerCopied
         End If
     Next ws
@@ -272,10 +274,10 @@ Private Sub CopyUnbilledMandantRowsToAbr(ByVal ws As Worksheet, _
                 wsDest.Cells(destRow, baseLastCol + 1).Value = ""
 
                 ' Name des Quellblatts (Mitarbeiter)
-                wsDest.Cells(destRow, baseLastCol + 2).Value = ws.Name
+                wsDest.Cells(destRow, baseLastCol + 2).Value = ws.name
 
                 ' Std-Satz für Mitarbeiter ausgeben
-                wsDest.Cells(destRow, baseLastCol + 3).Value = Format(Helper.GetStundensatz(ws.Name), "0.00")
+                wsDest.Cells(destRow, baseLastCol + 3).Value = Format(Helper.GetStundensatz(ws.name), "0.00")
 
                 destRow = destRow + 1
             End If
@@ -319,6 +321,7 @@ Public Sub SchreibeAbgerechnetZurueck()
     Set dictSelected = CollectMarkedAbrRowIds(wsABR, hdrRow, colZeilenId, colSelect)
     If dictSelected Is Nothing Then Exit Sub        ' Fehler bereits gemeldet
     If dictSelected.Count = 0 Then
+        Wartebox.CloseToast
         MsgBox "Keine Zeilen zum Zurückschreiben markiert.", vbInformation
         Exit Sub
     End If
@@ -332,6 +335,7 @@ Public Sub SchreibeAbgerechnetZurueck()
 
     ' 3) Falls IDs fehlen oder mehrfach vorkommen, Dialog zeigen und ggf. abbrechen
     If Not ShowAmbiguousOrMissingIdsAndAbort(dictSelected, ambiguous, missing) Then
+        Wartebox.CloseToast
         Exit Sub
     End If
 
@@ -489,7 +493,7 @@ Private Sub BuildUpdateMapFromLocalMaSheets(ByVal dictSelected As Object, _
 
     For Each ws In ThisWorkbook.Worksheets
         ' Explizit MA_HA und generisch alle "MA "-Sheets
-        If ws.Name = WORKSHEET_HAMAIN Or UCase$(Left$(ws.Name, Len(WORKSHEET_PREFIX_TO_COLLECT))) = WORKSHEET_PREFIX_TO_COLLECT Then
+        If ws.name = WORKSHEET_HAMAIN Or UCase$(Left$(ws.name, Len(WORKSHEET_PREFIX_TO_COLLECT))) = WORKSHEET_PREFIX_TO_COLLECT Then
 
             colId = Utils.FindHeaderCol(ws, hdrRow, HEADER_ZEILEN_ID)
             colAbg = Utils.FindHeaderCol(ws, hdrRow, HEADER_ABGERECHNET)
@@ -508,7 +512,7 @@ Private Sub BuildUpdateMapFromLocalMaSheets(ByVal dictSelected As Object, _
 
                             If cnt = 1 Then
                                 ' info: (0)=SourceType, (1)=SheetName, (2)=Row, (3)=ColAbgerechnet
-                                toUpdate(id) = Array("LOCAL", ws.Name, r, colAbg)
+                                toUpdate(id) = Array("LOCAL", ws.name, r, colAbg)
                             ElseIf cnt = 2 Then
                                 ambiguous.Add id
                                 If toUpdate.Exists(id) Then toUpdate.Remove id
@@ -643,7 +647,7 @@ Private Sub ProcessExternalMaFilesForUpdate(ByVal folder As Object, _
 
     ' Alle Dateien im aktuellen Ordner
     For Each file In folder.Files
-        If LCase$(file.Name) Like "ma_*.xlsx" Then
+        If LCase$(file.name) Like "ma_*.xlsx" Then
             ProcessSingleMaWorkbookForUpdate CStr(file.Path), xlApp, dictSelected, hdrRow, toUpdate, ambiguous, foundCount
         End If
     Next file
@@ -675,7 +679,7 @@ Private Sub ProcessSingleMaWorkbookForUpdate(ByVal filePath As String, _
     Set wb = xlApp.Workbooks.Open(Filename:=filePath, ReadOnly:=False)
 
     For Each ws In wb.Worksheets
-        If Left$(ws.Name, Len(WORKSHEET_PREFIX_TO_COLLECT)) = WORKSHEET_PREFIX_TO_COLLECT Then
+        If Left$(ws.name, Len(WORKSHEET_PREFIX_TO_COLLECT)) = WORKSHEET_PREFIX_TO_COLLECT Then
             colId = Utils.FindHeaderCol(ws, hdrRow, HEADER_ZEILEN_ID)
             colAbg = Utils.FindHeaderCol(ws, hdrRow, HEADER_ABGERECHNET)
 
@@ -693,7 +697,7 @@ Private Sub ProcessSingleMaWorkbookForUpdate(ByVal filePath As String, _
 
                             If cnt = 1 Then
                                 ' info: (0)=SourceType, (1)=FilePath, (2)=SheetName, (3)=Row, (4)=ColAbgerechnet
-                                toUpdate(id) = Array("EXTERNAL", filePath, ws.Name, r, colAbg)
+                                toUpdate(id) = Array("EXTERNAL", filePath, ws.name, r, colAbg)
                             ElseIf cnt = 2 Then
                                 ambiguous.Add id
                                 If toUpdate.Exists(id) Then toUpdate.Remove id
