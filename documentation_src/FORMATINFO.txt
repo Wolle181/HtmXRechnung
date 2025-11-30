@@ -1,0 +1,5 @@
+Info zum JEX-Format:
+
+Die JEX-Datei in diesem Verzeichnis stammt aus dem OpenSource-Tool JOPLIN und kann dort importiert, bearbeitet und zu PDF exportiert werden.
+
+Quelle: https://joplinapp.org/
