@@ -229,13 +229,13 @@ Private Sub CreateSortButtons(ws As Worksheet, ByVal spalte As Long, ByVal zeile
     topPos = ws.Cells(zeile, spalte).Top
     leftPos = ws.Cells(zeile, spalte).Left
 
-    Dim btnSortByMdNr As Button: Set btnSortByMdNr = ws.Buttons.Add(leftPos, topPos, 100, 30)
+    Dim btnSortByMdNr As Button: Set btnSortByMdNr = ws.Buttons.Add(leftPos, topPos, 120, 30)
     With btnSortByMdNr
         .Caption = "Sortiere nach MD-Nr"
         .OnAction = "Abgleich.SortByMdNr"
     End With
     
-    Dim btnSortByMd As Button: Set btnSortByMd = ws.Buttons.Add(leftPos, topPos + btnSortByMdNr.Height + 3, 100, 30)
+    Dim btnSortByMd As Button: Set btnSortByMd = ws.Buttons.Add(leftPos, topPos + btnSortByMdNr.Height + 3, 120, 30)
     With btnSortByMd
         .Caption = "Sortiere nach MD"
         .OnAction = "Abgleich.SortByMd"
@@ -252,8 +252,7 @@ Public Sub SortByMdNr()
 
     ' Sortiere nach Spalte 1 (MD-Nr)
     ws.Sort.SortFields.Clear
-    ws.Sort.SortFields.Add key:=ws.Range("A2:A" & lastRow), _
-        SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    ws.Sort.SortFields.Add key:=ws.Range("A2:A" & lastRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
 
     With ws.Sort
         .SetRange ws.Range("A1:B" & lastRow)
@@ -264,7 +263,6 @@ Public Sub SortByMdNr()
     End With
     
     HighlightDuplicateValuesInAbgleich ws, 1
-
     Exit Sub
 
 EH:
@@ -281,8 +279,7 @@ Public Sub SortByMd()
 
     ' Sortiere nach Spalte 2 (MD)
     ws.Sort.SortFields.Clear
-    ws.Sort.SortFields.Add key:=ws.Range("B2:B" & lastRow), _
-        SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    ws.Sort.SortFields.Add key:=ws.Range("B2:B" & lastRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
 
     With ws.Sort
         .SetRange ws.Range("A1:B" & lastRow)
@@ -293,7 +290,6 @@ Public Sub SortByMd()
     End With
     
     HighlightDuplicateValuesInAbgleich ws, 2
-
     Exit Sub
 
 EH:
@@ -317,7 +313,7 @@ Private Sub HighlightDuplicateValuesInAbgleich(ws As Worksheet, ByVal colSpec As
     Dim useFirstColor As Boolean
 
     ' Zwei verschiedene Farben definieren
-    color1 = vbYellow
+    color1 = RGB(253, 233, 217) ' helles pastell-orange
     color2 = RGB(255, 255, 153) ' helles Gelb/Creme als zweite Farbe
     useFirstColor = True        ' erste Duplikatgruppe startet mit color1
 
