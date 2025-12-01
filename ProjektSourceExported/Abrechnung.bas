@@ -73,46 +73,58 @@ Private Sub AppendUnbilledPositionsFromMaSheet(ByVal ws As Worksheet, _
                                                ByRef destRow As Long, _
                                                ByRef baseLastCol As Long, _
                                                ByRef headerCopied As Boolean)
-    Dim hdrRow As Long: hdrRow = HEADER_ROW
-    If Not Helper.SheetHasData(ws, hdrRow) Then Exit Sub
+    If Not Helper.SheetHasData(ws, HEADER_ROW) Then Exit Sub
 
     ' relevante Spalten suchen
-    Dim colZeilenId As Long
-    Dim colAbgerechnet As Long
-    Dim colMdNr As Long
-    Dim colMd As Long
-
-    colZeilenId = Utils.FindHeaderCol(ws, hdrRow, HEADER_ZEILEN_ID)
-    colAbgerechnet = Utils.FindHeaderCol(ws, hdrRow, HEADER_ABGERECHNET)
-    colMdNr = Utils.FindHeaderCol(ws, hdrRow, HEADER_MDNR)
-    colMd = Utils.FindHeaderCol(ws, hdrRow, HEADER_MD)
+    Dim colZeilenId As Long: colZeilenId = Utils.FindHeaderCol(ws, HEADER_ROW, HEADER_ZEILEN_ID)
+    Dim colAbgerechnet As Long: colAbgerechnet = Utils.FindHeaderCol(ws, HEADER_ROW, HEADER_ABGERECHNET)
+    Dim colMdNr As Long: colMdNr = Utils.FindHeaderCol(ws, HEADER_ROW, HEADER_MDNR)
+    Dim colMd As Long: colMd = Utils.FindHeaderCol(ws, HEADER_ROW, HEADER_MD)
 
     If colZeilenId = 0 Or colAbgerechnet = 0 Or colMdNr = 0 Or colMd = 0 Then Exit Sub
 
     Dim lastRow As Long
     lastRow = Utils.FindLastUsedRow(ws)
-    If lastRow <= hdrRow Then Exit Sub
+    If lastRow <= HEADER_ROW Then Exit Sub
 
     ' 1) leere Zeilen-IDs auffüllen
     Dim lastCol As Long: lastCol = FindLastUsedCol(ws, 1)
-    FillMissingZeilenIds ws, hdrRow, lastRow, lastCol, colZeilenId
+    FillMissingZeilenIds ws, HEADER_ROW, lastRow, lastCol, colZeilenId
 
     ' Zeilen-ID-Spalte im Quellblatt ausblenden
-    Helper.HideZeilenIdColumn ws, hdrRow
+    Helper.HideZeilenIdColumn ws, HEADER_ROW
 
     ' 2) Header einmalig ins ABR-Sheet kopieren
     If Not headerCopied Then
-        Helper.CopyAbrHeader ws, wsDest, hdrRow, destRow, lastCol, baseLastCol, headerCopied
+        Helper.CopyAbrHeader ws, wsDest, HEADER_ROW, destRow, lastCol, baseLastCol, headerCopied
     End If
 
     ' 3) nicht abgerechnete Zeilen zum Mandanten kopieren
-    CopyUnbilledMandantRowsToAbr ws, wsDest, key, byName, hdrRow, lastRow, colMdNr, colMd, colAbgerechnet, baseLastCol, destRow
+    CopyUnbilledMandantRowsToAbr ws, wsDest, key, byName, HEADER_ROW, lastRow, colMdNr, colMd, colAbgerechnet, baseLastCol, destRow
+    
+    ' 4) Formel für betrag ergänzen
+    FillRowBetragWithMultiplication wsDest
     
     ' Spaltenbreite anpassen
     wsDest.Range(HEADER_RANGE).EntireColumn.AutoFit
+    Dim colBetrag As Long: colBetrag = Utils.FindHeaderCol(wsDest, HEADER_ROW, HEADER_BETRAG)
+    wsDest.Columns(colBetrag).ColumnWidth = 10
    
     ' Zeilen-ID-Spalte im ABR-Sheet (wsDest) ausblenden
-    Helper.HideZeilenIdColumn wsDest, hdrRow
+    Helper.HideZeilenIdColumn wsDest, HEADER_ROW
+End Sub
+
+Private Sub FillRowBetragWithMultiplication(wsDest As Worksheet)
+    Dim lastRow As Long: lastRow = Utils.FindLastUsedRow(wsDest)
+    Dim colBetrag As Long: colBetrag = Utils.FindHeaderCol(wsDest, HEADER_ROW, HEADER_BETRAG)
+    Dim colStunden As Long: colStunden = Utils.FindHeaderCol(wsDest, HEADER_ROW, HEADER_STUNDEN)
+    Dim colStdSatz As Long: colStdSatz = Utils.FindHeaderCol(wsDest, HEADER_ROW, HEADER_STDSATZ)
+    
+    Dim i As Long
+    For i = HEADER_ROW + 1 To lastRow
+        wsDest.Cells(i, colBetrag).Formula = "=" & wsDest.Cells(i, colStunden).Address(False, False) & "*" & wsDest.Cells(i, colStdSatz).Address(False, False)
+        wsDest.Cells(i, colBetrag).NumberFormat = "0.00"
+    Next i
 End Sub
 
 Private Sub AppendUnbilledPositionsFromExternalMaFiles(ByVal basePath As String, _

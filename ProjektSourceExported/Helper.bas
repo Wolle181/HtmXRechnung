@@ -63,6 +63,7 @@ Public Sub CopyAbrHeader(ByVal ws As Worksheet, _
     wsDest.Rows(destRow).RowHeight = ws.Rows(hdrRow).RowHeight
 
     ' Zusätzliche Spalten
+    wsDest.Cells(destRow, baseLastCol + 0).Value = HEADER_BETRAG
     wsDest.Cells(destRow, baseLastCol + 1).Value = HEADER_ABZURECHNEN
     wsDest.Cells(destRow, baseLastCol + 2).Value = HEADER_QUELLBLATT
     wsDest.Cells(destRow, baseLastCol + 3).Value = HEADER_STDSATZ
