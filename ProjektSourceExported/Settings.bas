@@ -39,7 +39,7 @@ Public Sub SettingsSpaltenschutzAufheben()
     End If
 End Sub
 
-Private Sub SpaltenSchutzStarten()
+Public Sub SpaltenSchutzStarten()
     Dim eingabe As String
     Dim ws As Worksheet: ActivateAnySheet ws, "Settings"
     

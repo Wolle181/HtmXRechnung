@@ -1,6 +1,6 @@
 Attribute VB_Name = "Abgleich"
 Option Explicit
-
+    
 Private Const ABGLEICH_SHEET_NAME As String = "Abgleich"
 
 Public Sub ErzeugeAbgleichSheet(control As IRibbonControl)
@@ -12,7 +12,8 @@ Public Sub ErzeugeAbgleichSheet(control As IRibbonControl)
     Dim wsAbgleich As Worksheet
     Dim destRow As Long
     Dim headerWritten As Boolean
-    Dim dictUnique As Object
+    Dim dictUnique As Object          ' Key: "MDNr||MD", Value: Zeilennummer im Abgleich-Sheet
+    Dim dictSheetCols As Object       ' Key: "Workbook!Sheet", Value: Spaltennummer im Abgleich-Sheet
     Dim basePath As String
 
     ' Abgleich-Sheet holen oder anlegen
@@ -24,13 +25,17 @@ Public Sub ErzeugeAbgleichSheet(control As IRibbonControl)
     Set dictUnique = CreateObject("Scripting.Dictionary")
     dictUnique.CompareMode = vbTextCompare
 
+    ' Dictionary für Spalten je Quelle (Workbook/Sheet)
+    Set dictSheetCols = CreateObject("Scripting.Dictionary")
+    dictSheetCols.CompareMode = vbTextCompare
+
     destRow = 1
     headerWritten = False
 
     ' 1) Haupt-Sheet "MA HA" im Makro-Workbook
     If Utils.SheetExists(WORKSHEET_HAMAIN) Then
         AppendMdRowsFromMaSheet ThisWorkbook.Worksheets(WORKSHEET_HAMAIN), _
-                                wsAbgleich, destRow, headerWritten, dictUnique
+                                wsAbgleich, destRow, headerWritten, dictUnique, dictSheetCols
     Else
         MsgBox "Hauptsheet '" & WORKSHEET_HAMAIN & "' wurde nicht gefunden.", vbExclamation
     End If
@@ -38,15 +43,18 @@ Public Sub ErzeugeAbgleichSheet(control As IRibbonControl)
     ' 2) Alle externen MA_*.xlsx-Dateien unterhalb des Settings-Pfads
     basePath = Settings.GetMaBasePathFromSettings()
     If Len(basePath) > 0 Then
-        AppendMdRowsFromExternalMaFiles basePath, wsAbgleich, destRow, headerWritten, dictUnique
+        AppendMdRowsFromExternalMaFiles basePath, wsAbgleich, destRow, headerWritten, dictUnique, dictSheetCols
     End If
 
     ' Leere Zeilen (ohne MD-Nr und MD) entfernen – zur Sicherheit noch einmal
     RemoveEmptyRowsInAbgleich wsAbgleich
 
     ' Header formatieren, wenn überhaupt Daten da sind
+    Dim lastHeaderCol As Long: lastHeaderCol = Utils.FindLastUsedCol(wsAbgleich, HEADER_ROW)
     If headerWritten Then
-        Utils.FormatHeader wsAbgleich, "A1:B1"
+        If lastHeaderCol < 2 Then lastHeaderCol = 2
+
+        Utils.FormatHeader wsAbgleich, wsAbgleich.Range(wsAbgleich.Cells(HEADER_ROW, 1), wsAbgleich.Cells(HEADER_ROW, lastHeaderCol)).Address(False, False)
     End If
 
     ' Spalten/Zeilen anpassen, Hintergrundfarben zurücksetzen
@@ -54,8 +62,18 @@ Public Sub ErzeugeAbgleichSheet(control As IRibbonControl)
     wsAbgleich.Columns("A").ColumnWidth = 15
     wsAbgleich.Rows.AutoFit
     wsAbgleich.Cells.Interior.ColorIndex = xlColorIndexNone
+    
+    ' verbeitern für SORT-Buttons:
+    wsAbgleich.Columns(lastHeaderCol).ColumnWidth = 20
+    wsAbgleich.Columns(lastHeaderCol + 1).ColumnWidth = 20
+    ' Sortierbuttons
+    CreateSortButtons wsAbgleich, lastHeaderCol, HEADER_ROW
 
-    CreateSortButtons wsAbgleich, 4, 2
+    wsAbgleich.Rows(HEADER_ROW).RowHeight = 25
+    
+    ' Oberste Zeile freezen:
+    wsAbgleich.Range("A2").Select
+    ActiveWindow.FreezePanes = True
 
 CleanExit:
     Wartebox.CloseToast
@@ -67,11 +85,49 @@ EH:
     Resume CleanExit
 End Sub
 
+' Liefert die Spalte im Abgleich-Sheet für ein bestimmtes Quell-Sheet.
+' Legt die Spalte bei Bedarf neu an und schreibt den Spaltenkopf.
+Private Function GetOrCreateSheetColumn( _
+    ByVal wsAbgleich As Worksheet, _
+    ByVal dictSheetCols As Object, _
+    ByVal sourceWorkbookName As String, _
+    ByVal sourceSheetName As String) As Long
+
+    Dim key As String
+    key = sourceWorkbookName & "!" & sourceSheetName
+
+    If Not dictSheetCols.Exists(key) Then
+        Dim nextCol As Long
+        Dim hdrRow As Long
+        hdrRow = HEADER_ROW
+
+        nextCol = Utils.FindLastUsedCol(wsAbgleich, hdrRow)
+        If nextCol < 2 Then
+            nextCol = 2
+        End If
+
+        dictSheetCols.Add key, nextCol
+
+        Dim caption As String
+        'If sourceWorkbookName = ThisWorkbook.name Then
+        '    caption = sourceSheetName
+        'Else
+        '    caption = sourceWorkbookName & "!" & sourceSheetName
+        'End If
+        caption = sourceSheetName
+
+        wsAbgleich.Cells(hdrRow, nextCol).Value = caption
+    End If
+
+    GetOrCreateSheetColumn = CLng(dictSheetCols(key))
+End Function
+
 Private Sub AppendMdRowsFromMaSheet(ByVal wsSource As Worksheet, _
                                     ByVal wsAbgleich As Worksheet, _
                                     ByRef destRow As Long, _
                                     ByRef headerWritten As Boolean, _
-                                    ByVal dictUnique As Object)
+                                    ByVal dictUnique As Object, _
+                                    ByVal dictSheetCols As Object)
 
     Dim hdrRow As Long: hdrRow = HEADER_ROW
     Dim lastCol As Long
@@ -82,6 +138,8 @@ Private Sub AppendMdRowsFromMaSheet(ByVal wsSource As Worksheet, _
     Dim sMdNr As String
     Dim sMd As String
     Dim key As String
+    Dim abgleichRow As Long
+    Dim colSource As Long
 
     ' Letzte verwendete Spalte in der Header-Zeile
     lastCol = Utils.FindLastUsedCol(wsSource, hdrRow)
@@ -98,11 +156,14 @@ Private Sub AppendMdRowsFromMaSheet(ByVal wsSource As Worksheet, _
 
     ' Header im Abgleich-Sheet einmalig schreiben
     If Not headerWritten Then
-        wsAbgleich.Cells(1, 1).Value = HEADER_MDNR
-        wsAbgleich.Cells(1, 2).Value = HEADER_MD
+        wsAbgleich.Cells(HEADER_ROW, 1).Value = HEADER_MDNR
+        wsAbgleich.Cells(HEADER_ROW, 2).Value = HEADER_MD
         headerWritten = True
-        If destRow < 2 Then destRow = 2
+        If destRow < HEADER_ROW + 1 Then destRow = HEADER_ROW + 1
     End If
+
+    ' Spalte für dieses Quell-Sheet im Abgleich-Sheet
+    colSource = GetOrCreateSheetColumn(wsAbgleich, dictSheetCols, wsSource.Parent.name, wsSource.name)
 
     ' Datenzeilen einsammeln
     For r = hdrRow + 1 To lastRow
@@ -112,21 +173,30 @@ Private Sub AppendMdRowsFromMaSheet(ByVal wsSource As Worksheet, _
         ' Nur Zeilen mit Inhalt in mindestens einem der beiden Felder
         If (Len(sMdNr) > 0) Or (Len(sMd) > 0) Then
             key = sMdNr & "||" & sMd
-            If Not dictUnique.Exists(key) Then
-                dictUnique.Add key, True
-                wsAbgleich.Cells(destRow, 1).Value = sMdNr
-                wsAbgleich.Cells(destRow, 2).Value = sMd
+
+            If dictUnique.Exists(key) Then
+                abgleichRow = CLng(dictUnique(key))
+            Else
+                abgleichRow = destRow
+                dictUnique.Add key, abgleichRow
+                wsAbgleich.Cells(abgleichRow, 1).Value = sMdNr
+                wsAbgleich.Cells(abgleichRow, 2).Value = sMd
                 destRow = destRow + 1
             End If
+
+            ' Kennzeichnung, dass diese Kombination in diesem Sheet vorkommt
+            wsAbgleich.Cells(abgleichRow, colSource).Value = "X"
         End If
     Next r
 End Sub
 
+' Erzeugen einer xeparatne XL-Instanz und Initialisieren der Dictionaries
 Private Sub AppendMdRowsFromExternalMaFiles(ByVal basePath As String, _
                                             ByVal wsAbgleich As Worksheet, _
                                             ByRef destRow As Long, _
                                             ByRef headerWritten As Boolean, _
-                                            ByVal dictUnique As Object)
+                                            ByVal dictUnique As Object, _
+                                            ByVal dictSheetCols As Object)
     Dim fso As Object
     Dim rootFolder As Object
     Dim xlApp As Object
@@ -140,15 +210,13 @@ Private Sub AppendMdRowsFromExternalMaFiles(ByVal basePath As String, _
     Set fso = CreateObject("Scripting.FileSystemObject")
     Set rootFolder = fso.GetFolder(basePath)
 
-    ' zweite, unsichtbare Excel-Instanz
     Set xlApp = CreateObject("Excel.Application")
-    xlApp.visible = False
     xlApp.DisplayAlerts = False
 
     On Error GoTo CleanUp
 
     ' rekursiv alle Unterordner / Dateien abarbeiten
-    ProcessMaFilesInFolderForAbgleich rootFolder, xlApp, wsAbgleich, destRow, headerWritten, dictUnique
+    ProcessMaFilesInFolderForAbgleich rootFolder, xlApp, wsAbgleich, destRow, headerWritten, dictUnique, dictSheetCols
 
 CleanUp:
     On Error Resume Next
@@ -164,7 +232,8 @@ Private Sub ProcessMaFilesInFolderForAbgleich(ByVal folder As Object, _
                                               ByVal wsAbgleich As Worksheet, _
                                               ByRef destRow As Long, _
                                               ByRef headerWritten As Boolean, _
-                                              ByVal dictUnique As Object)
+                                              ByVal dictUnique As Object, _
+                                              ByVal dictSheetCols As Object)
     Dim subFolder As Object
     Dim file As Object
 
@@ -172,13 +241,14 @@ Private Sub ProcessMaFilesInFolderForAbgleich(ByVal folder As Object, _
     For Each file In folder.Files
         ' nur MA_*.xlsx berücksichtigen (keine .xlsm)
         If LCase$(file.name) Like "ma_*.xlsx" Then
-            AppendMdRowsFromExternalWorkbookForAbgleich CStr(file.Path), xlApp, wsAbgleich, destRow, headerWritten, dictUnique
+            AppendMdRowsFromExternalWorkbookForAbgleich CStr(file.Path), xlApp, wsAbgleich, _
+                                                        destRow, headerWritten, dictUnique, dictSheetCols
         End If
     Next file
 
     ' Unterordner rekursiv
     For Each subFolder In folder.SubFolders
-        ProcessMaFilesInFolderForAbgleich subFolder, xlApp, wsAbgleich, destRow, headerWritten, dictUnique
+        ProcessMaFilesInFolderForAbgleich subFolder, xlApp, wsAbgleich, destRow, headerWritten, dictUnique, dictSheetCols
     Next subFolder
 End Sub
 
@@ -187,7 +257,8 @@ Private Sub AppendMdRowsFromExternalWorkbookForAbgleich(ByVal filePath As String
                                                         ByVal wsAbgleich As Worksheet, _
                                                         ByRef destRow As Long, _
                                                         ByRef headerWritten As Boolean, _
-                                                        ByVal dictUnique As Object)
+                                                        ByVal dictUnique As Object, _
+                                                        ByVal dictSheetCols As Object)
     Dim wb As Workbook
     Dim ws As Worksheet
 
@@ -198,7 +269,7 @@ Private Sub AppendMdRowsFromExternalWorkbookForAbgleich(ByVal filePath As String
     ' In der externen Mappe alle MA-Sheets verarbeiten
     For Each ws In wb.Worksheets
         If Utils.SheetNameIsMA(ws.name) Then
-            AppendMdRowsFromMaSheet ws, wsAbgleich, destRow, headerWritten, dictUnique
+            AppendMdRowsFromMaSheet ws, wsAbgleich, destRow, headerWritten, dictUnique, dictSheetCols
         End If
     Next ws
 
@@ -225,19 +296,23 @@ Private Sub RemoveEmptyRowsInAbgleich(ByVal wsAbgleich As Worksheet)
 End Sub
 
 Private Sub CreateSortButtons(ws As Worksheet, ByVal spalte As Long, ByVal zeile As Long)
-    Dim topPos As Double, leftPos As Double
-    topPos = ws.Cells(zeile, spalte).Top
-    leftPos = ws.Cells(zeile, spalte).Left
+    Dim cell As Range: Set cell = ws.Cells(zeile, spalte)
+    Dim topPos As Double, leftPos As Double, width As Double, height As Double
+    topPos = cell.Top
+    leftPos = cell.Left
+    width = cell.width
+    height = cell.height
 
-    Dim btnSortByMdNr As Button: Set btnSortByMdNr = ws.Buttons.Add(leftPos, topPos, 120, 30)
+    ' Buttons sind in der gefreezten Header-Zeile, damit sie nicht mitscrollen
+    Dim btnSortByMdNr As Button: Set btnSortByMdNr = ws.Buttons.Add(leftPos, topPos, width, height)
     With btnSortByMdNr
-        .Caption = "Sortiere nach MD-Nr"
+        .caption = "Sortiere nach MD-Nr"
         .OnAction = "Abgleich.SortByMdNr"
     End With
     
-    Dim btnSortByMd As Button: Set btnSortByMd = ws.Buttons.Add(leftPos, topPos + btnSortByMdNr.Height + 3, 120, 30)
+    Dim btnSortByMd As Button: Set btnSortByMd = ws.Buttons.Add(leftPos + width + 3, topPos, width, height)
     With btnSortByMd
-        .Caption = "Sortiere nach MD"
+        .caption = "Sortiere nach MD"
         .OnAction = "Abgleich.SortByMd"
     End With
 End Sub
@@ -250,12 +325,15 @@ Public Sub SortByMdNr()
     
     If lastRow <= 1 Then Exit Sub ' nichts zu sortieren
 
+    Dim lastCol As Long: lastCol = Utils.FindLastUsedCol(ws, HEADER_ROW)
+
     ' Sortiere nach Spalte 1 (MD-Nr)
     ws.Sort.SortFields.Clear
     ws.Sort.SortFields.Add key:=ws.Range("A2:A" & lastRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
 
     With ws.Sort
-        .SetRange ws.Range("A1:B" & lastRow)
+'        .SetRange ws.Range("A1:B" & lastRow)
+        .SetRange ws.Range(ws.Cells(HEADER_ROW, 1), ws.Cells(lastRow, lastCol))
         .Header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
@@ -277,12 +355,15 @@ Public Sub SortByMd()
     
     If lastRow <= 1 Then Exit Sub ' nichts zu sortieren
 
+    Dim lastCol As Long: lastCol = Utils.FindLastUsedCol(ws, HEADER_ROW)
+
     ' Sortiere nach Spalte 2 (MD)
     ws.Sort.SortFields.Clear
     ws.Sort.SortFields.Add key:=ws.Range("B2:B" & lastRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
 
     With ws.Sort
-        .SetRange ws.Range("A1:B" & lastRow)
+        .SetRange ws.Range(ws.Cells(HEADER_ROW, 1), ws.Cells(lastRow, lastCol))
+        '.SetRange ws.Range("A1:B" & lastRow)
         .Header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom

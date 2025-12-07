@@ -32,7 +32,7 @@ Private Sub AbrechnungDialog_Show()
     
     Load AbrechnungDialog
     With AbrechnungDialog
-        .Caption = "Suche Mandant anhand Nummer oder Name"
+        .caption = "Suche Mandant anhand Nummer oder Name"
 
         Dim StartWithNameField As Boolean: StartWithNameField = Settings.GetDialogStartsWithNameField()
         .optMdId.Value = Not StartWithNameField

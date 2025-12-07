@@ -17,7 +17,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Public Sub ShowToast(msg As String)
-    Wartebox.lblWaitmessage.Caption = msg
+    Wartebox.lblWaitmessage.caption = msg
     Application.StatusBar = msg
     Application.Cursor = xlWait
     Wartebox.Show
