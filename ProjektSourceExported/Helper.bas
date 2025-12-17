@@ -88,8 +88,8 @@ Public Function CollectUniqueMdNames() As Collection
         End If
     Next ws
 
-    ' 2) Alle externen MA_*.xlsx-Dateien unterhalb des Pfads aus Settings!B3
-    basePath = Settings.GetMaBasePathFromSettings()
+    ' 2) Alle externen TIMESHEETNAMETEMPLATE-Dateien unterhalb des Pfads aus Settings!B3
+    basePath = Settings.GetTimesheetBasePath()
     If Len(basePath) > 0 Then
         AppendMdNamesFromExternalMaFiles basePath, result
     End If
@@ -145,7 +145,7 @@ NextHeaderRow:
     Next r
 End Sub
 
-' Liest alle MA_*.xlsx-Dateien unterhalb basePath und sammelt deren MD-Namen.
+' Liest alle TIMESHEETNAMETEMPLATE-Dateien unterhalb basePath und sammelt deren MD-Namen.
 Private Sub AppendMdNamesFromExternalMaFiles(ByVal basePath As String, _
                                              ByRef result As Collection)
     Dim fso As Object
@@ -186,11 +186,12 @@ Private Sub ProcessMaFilesInFolderForMdNames(ByVal folder As Object, _
                                              ByRef result As Collection)
     Dim subFolder As Object
     Dim file As Object
+    Dim TimesheetNameTemplate As String: TimesheetNameTemplate = LCase$(Settings.GetTimesheetNameTemplate())
 
     ' Dateien im aktuellen Ordner
     For Each file In folder.Files
-        ' nur MA_*.xlsx berücksichtigen (keine .xlsm)
-        If LCase$(file.name) Like "ma_*.xlsx" Then
+        ' nur TIMESHEETNAMETEMPLATE-Dateien berücksichtigen (keine .xlsm)
+        If LCase$(file.name) Like TimesheetNameTemplate Then
             CollectMdNamesFromExternalWorkbook CStr(file.Path), xlApp, result
         End If
     Next file

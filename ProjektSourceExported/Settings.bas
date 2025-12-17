@@ -70,10 +70,14 @@ Public Sub SheetVisibility(visible As Boolean)
 End Sub
 
 Public Function GetDialogStartsWithNameField() As Boolean
-    GetDialogStartsWithNameField = ThisWorkbook.Sheets("Settings").Range("B4").Value = "J"
+    GetDialogStartsWithNameField = UCase$(ThisWorkbook.Sheets("Settings").Range("B4").Value) = "J"
 End Function
 
-Public Function GetMaBasePathFromSettings() As String
+Public Function GetTimesheetNameTemplate() As String
+    GetTimesheetNameTemplate = ThisWorkbook.Sheets("Settings").Range("B5").Value
+End Function
+
+Public Function GetTimesheetBasePath() As String
     Dim wsSettings As Worksheet
     Dim rawPath As String
     Dim resultPath As String
@@ -84,7 +88,7 @@ Public Function GetMaBasePathFromSettings() As String
     On Error GoTo 0
 
     If wsSettings Is Nothing Then
-        MsgBox "Settings-Sheet nicht gefunden. Pfad für MA-Dateien kann nicht ausgelesen werden.", vbExclamation
+        MsgBox "Settings-Sheet nicht gefunden." & vbCrLf & "Pfad für Zeiterfassungsdateien kann nicht ausgelesen werden.", vbExclamation
         Exit Function
     End If
 
@@ -122,6 +126,6 @@ Public Function GetMaBasePathFromSettings() As String
         resultPath = Left$(resultPath, Len(resultPath) - 1)
     End If
 
-    GetMaBasePathFromSettings = resultPath
+    GetTimesheetBasePath = resultPath
 End Function
 

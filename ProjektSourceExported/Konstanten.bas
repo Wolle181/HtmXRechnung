@@ -19,6 +19,6 @@ Public Const HEADER_STUNDEN As String = "Stunden"
 Public Const WORKSHEET_PREFIX_TO_COLLECT = "MA "
 Public Const WORKSHEET_PREFIX_FOR_ABRECHNUNG = "ABR "
 Public Const WORKSHEET_HAMAIN = "MA HA"
-Public Const ABGERECHNET_MARKER = "M"
+Public Const ABGERECHNET_MARKER = "x"
 
 

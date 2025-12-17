@@ -19,8 +19,8 @@ End Type
 #End If
 
 Public Function SheetNameIsMA(ByVal sheetName As String) As Boolean
-    Dim n As String: n = LCase$(sheetName)
-    SheetNameIsMA = (n Like "ma *" Or n Like "ma-*" Or n Like "ma_*" Or n Like "ma*")
+    Dim prefixToCompareWith As String: prefixToCompareWith = WORKSHEET_PREFIX_TO_COLLECT & "*"
+    SheetNameIsMA = LCase$(sheetName) Like LCase$(prefixToCompareWith)
 End Function
 
 Public Function DoesAbrSheetExist() As Boolean
@@ -153,16 +153,6 @@ Public Function FindHeaderCol(ws As Worksheet, hdrRow As Long, headerText As Str
     Next
     
     FindHeaderCol = 0
-End Function
-
-' Suche Zeile die eine ausgefüllte MD-Nr oder einen MD-namen enthält.
-'VERTMULICH UNGENUTZT
-Private Function IsRowUsable(ws As Worksheet, ByVal r As Long, colMdNr As Long, colMd As Long) As Boolean
-    Dim sMdNr As String, sMd As String
-    sMdNr = Trim$(CStr(ws.Cells(r, colMdNr).Value))
-    sMd = Trim$(CStr(ws.Cells(r, colMd).Value))
-    ' Zeile ignorieren, wenn MD-Nr ODER MD leer ist
-    IsRowUsable = (sMdNr <> "" And sMd <> "")
 End Function
 
 Public Function CollectionToStringArray(col As Collection) As String()

@@ -38,9 +38,9 @@ Public Sub SucheNichtAbgerechnetePositionen(ByVal key As String, ByVal byName As
         AppendUnbilledPositionsFromMaSheet wsHa, wsDest, key, byName, destRow, baseLastCol, headerCopied
     End If
 
-    ' 3b) Alle externen MA_*.xlsx-Dateien unterhalb des Pfads aus Settings!B3 einlesen
+    ' 3b) Alle externen TIMESHEETNAMETEMPLATE-Dateien unterhalb des Pfads aus Settings!B3 einlesen
     Dim basePath As String
-    basePath = Settings.GetMaBasePathFromSettings()
+    basePath = Settings.GetTimesheetBasePath()
     If Len(basePath) > 0 Then
         AppendUnbilledPositionsFromExternalMaFiles basePath, wsDest, key, byName, destRow, baseLastCol, headerCopied
     End If
@@ -177,11 +177,11 @@ Private Sub ProcessMaFilesInFolder(ByVal folder As Object, _
                                    ByRef headerCopied As Boolean)
     Dim subFolder As Object
     Dim file As Object
+    Dim TimesheetNameTemplate As String: TimesheetNameTemplate = LCase$(Settings.GetTimesheetNameTemplate())
 
     ' Dateien im aktuellen Ordner
     For Each file In folder.Files
-        ' nur MA_*.xlsx berücksichtigen (keine .xlsm)
-        If LCase$(file.name) Like "ma_*.xlsx" Then
+        If LCase$(file.name) Like TimesheetNameTemplate Then
             ProcessSingleMaWorkbook CStr(file.Path), xlApp, wsDest, key, byName, destRow, baseLastCol, headerCopied
         End If
     Next file
@@ -439,9 +439,9 @@ Private Sub BuildUpdateMapForSelectedIds(ByVal dictSelected As Object, _
     ' 1) In lokalen MA-Sheets (inkl. MA_HA) suchen
     BuildUpdateMapFromLocalMaSheets dictSelected, hdrRow, toUpdate, ambiguous, foundCount
 
-    ' 2) In externen MA_*.xlsx-Dateien (Pfad aus Settings!B3) suchen
+    ' 2) In externen TIMESHEETNAMETEMPLATE-Dateien (Pfad aus Settings!B3) suchen
     Dim basePath As String
-    basePath = Settings.GetMaBasePathFromSettings()   ' muss vorhanden sein (aus deiner vorherigen Anpassung)
+    basePath = Settings.GetTimesheetBasePath()   ' muss vorhanden sein (aus deiner vorherigen Anpassung)
 
     If Len(basePath) > 0 Then
         BuildUpdateMapFromExternalMaFiles dictSelected, hdrRow, toUpdate, ambiguous, foundCount, basePath
@@ -656,10 +656,11 @@ Private Sub ProcessExternalMaFilesForUpdate(ByVal folder As Object, _
                                             ByRef foundCount As Object)
     Dim file As Object
     Dim subFolder As Object
+    Dim TimesheetNameTemplate As String: TimesheetNameTemplate = LCase$(Settings.GetTimesheetNameTemplate())
 
     ' Alle Dateien im aktuellen Ordner
     For Each file In folder.Files
-        If LCase$(file.name) Like "ma_*.xlsx" Then
+        If LCase$(file.name) Like TimesheetNameTemplate Then
             ProcessSingleMaWorkbookForUpdate CStr(file.Path), xlApp, dictSelected, hdrRow, toUpdate, ambiguous, foundCount
         End If
     Next file

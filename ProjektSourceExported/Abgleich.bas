@@ -40,8 +40,8 @@ Public Sub ErzeugeAbgleichSheet(control As IRibbonControl)
         MsgBox "Hauptsheet '" & WORKSHEET_HAMAIN & "' wurde nicht gefunden.", vbExclamation
     End If
 
-    ' 2) Alle externen MA_*.xlsx-Dateien unterhalb des Settings-Pfads
-    basePath = Settings.GetMaBasePathFromSettings()
+    ' 2) Alle externen TIMESHEETNAMETEMPLATE-Dateien unterhalb des Settings-Pfads
+    basePath = Settings.GetTimesheetBasePath()
     If Len(basePath) > 0 Then
         AppendMdRowsFromExternalMaFiles basePath, wsAbgleich, destRow, headerWritten, dictUnique, dictSheetCols
     End If
@@ -102,20 +102,11 @@ Private Function GetOrCreateSheetColumn( _
         hdrRow = HEADER_ROW
 
         nextCol = Utils.FindLastUsedCol(wsAbgleich, hdrRow)
-        If nextCol < 2 Then
-            nextCol = 2
-        End If
+        If nextCol < 2 Then nextCol = 2
 
         dictSheetCols.Add key, nextCol
 
-        Dim caption As String
-        'If sourceWorkbookName = ThisWorkbook.name Then
-        '    caption = sourceSheetName
-        'Else
-        '    caption = sourceWorkbookName & "!" & sourceSheetName
-        'End If
-        caption = sourceSheetName
-
+        Dim caption As String: caption = sourceSheetName
         wsAbgleich.Cells(hdrRow, nextCol).Value = caption
     End If
 
@@ -237,10 +228,12 @@ Private Sub ProcessMaFilesInFolderForAbgleich(ByVal folder As Object, _
     Dim subFolder As Object
     Dim file As Object
 
+    Dim TimesheetNameTemplate As String: TimesheetNameTemplate = LCase$(Settings.GetTimesheetNameTemplate())
+
     ' Dateien im aktuellen Ordner
     For Each file In folder.Files
-        ' nur MA_*.xlsx berücksichtigen (keine .xlsm)
-        If LCase$(file.name) Like "ma_*.xlsx" Then
+        ' nur TIMESHEETNAMETEMPLATE-Dateien berücksichtigen (keine .xlsm)
+        If LCase$(file.name) Like TimesheetNameTemplate Then
             AppendMdRowsFromExternalWorkbookForAbgleich CStr(file.Path), xlApp, wsAbgleich, _
                                                         destRow, headerWritten, dictUnique, dictSheetCols
         End If
