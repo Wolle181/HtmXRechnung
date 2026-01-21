@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="260" viewBox="0 0 800 260">
+  <style>
+    .name { font-family: Arial, Helvetica, sans-serif; font-size: 40px; letter-spacing: 3px; fill: #5a5a5a; }
+    .role { font-family: Arial, Helvetica, sans-serif; font-size: 20px; letter-spacing: 2px; fill: #6a6a6a; }
+    .title { font-family: Arial, Helvetica, sans-serif; font-size: 18px; fill: #7a7a7a; }
+    .line { stroke: #9a9a9a; stroke-width: 1; }
+  </style>
+
+  <text x="400" y="70" text-anchor="middle" class="name">HARTMUT AHTING</text>
+  <line x1="200" y1="95" x2="600" y2="95" class="line"></line>
+  <text x="400" y="130" text-anchor="middle" class="role">STEUERBERATER</text>
+  <text x="400" y="165" text-anchor="middle" class="title">Dipl.-Wirtschaftsingenieur</text>
+</svg>
