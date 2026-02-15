@@ -1,0 +1,39 @@
+﻿Nummer;Name;Kategorie;Einheit;Preis;USt;Barcode;Verfügbar;Lager;Beschreibung;Kommentar
+ERKLÄRUNGZ;Erklärung zur gesonderten Feststellung der Einkünfte ohne Ermittlung der Einkünfte;A;0,6;1;19;;true;;;
+EINKOMMENS;Einkommensteuererklärung ohne Ermittlung der Einkünfte (0,6);A;0,6;1;19;;true;;;
+ERKLÄRUNGZ;Erklärung zur Feststellung nach dem Bewertungsgesetz auf den Stichtag: 31.10.2025 (0,6);A;0,6;1;19;;true;;;
+SCHENKUNGS;Schenkungs- oder Erbschaftsteuererklärung auf den Stichtag: 31.10.2025 (0,6);A;0,6;1;19;;true;;;
+KAPITALERT;Kapitalertragsteueranmeldung zum: 25.07.2025 (0,55);A;0,55;1;19;;true;;;
+UMSATZSTEU;Umsatzsteuerjahreserklärung (0,6);A;0,6;1;19;;true;;;
+GEWERBESTE;Gewerbesteuererklärung (0,6);A;0,6;1;19;;true;;;
+KÖRPERSCHA;Körperschaftsteuererklärung (0,6);A;0,6;1;19;;true;;;
+GEWERBESTE;Gewerbesteuerzerlegungserklärung (0,6);A;0,6;1;19;;true;;;
+UMSATZSTEU;Umsatzsteuervoranmeldung (0,6);A;0,6;1;19;;true;;;
+ÜBER_LAND;Überschußermittlung bei den Einkünften aus Land und Forstwirtschaft (0,3);B;0,3;1;19;;true;;;
+ÜBER_GEW;Überschußermittlung bei den Einkünften aus Gewerbebetrieb (0,3);B;0,3;1;19;;true;;;
+ÜBER_SLBARB;Überschußermittlung bei den Einkünften aus selbständiger Arbeit (0,3);B;0,3;1;19;;true;;;
+ÜBER_NSLBARB;Überschußermittlung bei den Einkünften aus nichtselbständiger Arbeit;A;0,3;1;19;;true;;;
+ÜBERSCHUSSE;Überschußermittlung bei den Einkünften aus Vermietung und Verpachtung Objekt: Am Hopfengarten (0,55);A;0,55;1;19;;true;;;
+ÜBERSCHUSSE;Überschußermittlung bei den Einkünften aus Kapitalvermögen - Herr Kühn (0,3);A;0,3;1;19;;true;;;
+ÜBERSCHUSSE;Überschußermittlung der sonstigen Einkünfte hier: Renteneinkünfte (0,3);A;0,3;1;19;;true;;;
+ANTRAGAUFV;Antrag auf Vergütung der abziehbaren Vor- steuerbeträge für Schweden 2024 (0,6);A;0,6;1;19;;true;;;
+HILFELEIST;Hilfeleistung bei sonstigen Tätigkeiten im Zusammenhang mit der Führung steuerlicher Aufzeichnungen - Zusammenstellung von Vorsteuervergütungsbeträgen f. Schweden 2024, Umrechnungen nach amtl. Kurs, Digitalisierung der Rechnungsbelege (5,5);Zeitgeb.;5,5;1;19;;true;;;
+PRÜFUNGVON;Prüfung von Steuerbescheiden Einkommensteuerbescheid 2022 am 16.06.2022 (1);Zeitgeb.;1;1;19;;true;;;
+AUSSERGERIC;außergerichtliches Rechtsbehelfsverfahren gg. (1,5);"2300 VV; §13 RVG";1,5;1;19;;true;;;
+DENESTBFÜR;den EStB für ((0,5-2,5));Rg Form 1;(0,5-2,5);1;19;;true;;;
+JA;Jahresabschluß (29/10);B;29/10;1;19;;true;;;
+STBILANZ;Steuerbilanz und -GuV (5/10);B;5/10;1;19;;true;;;
+ANHANG;Anhang (2/10);B;2/10;1;19;;true;;;
+ÜBERGBILANZ;Übergangs- u. Aufgabebilanz zum 30.06.2024 mit Übergangs- u. Aufgabegewinnermittlung (16,75/10);B;16,75/10;1;19;;true;;;
+BERATUNG;mündlicher oder schriftlicher Rat oder Auskunft Beratung hinsichtlich der Einkommens- besteuerung bei Wegzug in das Ausland, insbesondere: Steueroasenproblematik, Besteuerung im Wegzugsjahr, Besteuerung von Kapitalerträgen, Beurteilung der Ansässigkeit (1/10 bis 10/10 einer Gebühr nach Tabelle A) (0,3);A;0,3;1;19;;true;;;
+AUSLAGENPT;Auslagenersatz für Post- und Telekommunikation;Rg Form 1;;1;19;;true;;;
+MENGENRABA;Mengenrabatt 1;Rg Form 2 Lohn;;1;19;;true;;;
+MENGENRABA;Mengenrabatt 2;Rg Form 2 Lohn;;1;19;;true;;;
+L&G;"Löhne/Gehälter
+'- Einrichten von Lohnkonten
+'- Lohnabrechnungen inkl. Sozialvers.-meldungen";Rg Form 2 Lohn;;1;19;;true;;;
+MRAB1;Mengenrabatt 1;Rg Form 2 Lohn;;1;19;;true;;;
+MRAT2;Mengenrabatt 2;Rg Form 2 Lohn;;1;19;;true;;;
+BUCHFÜHRUN;Buchführung einschließlich des Kontierens der der Belege für:;Rg Form 3 Fibu;;1;19;;true;;;
+TEILNAHMEA;Teilnahme an der Prüfung der DRV für 2018-2021 - Vorbereitung der Prüfung und Zusammen- stellung von Unterlagen vom 02.-17.01.2022 - Beantwortung von Prüfunganfragen am 03.02.2022 und am 08.03.2022 - Abschluß der Prüfung durch Prüfung des Prüfberichts am 15.03.2022;Zeitgeb.;;1;19;;true;;;
+TRANSPREG;Eintragung der wirtschaftlich Berechtigten in das Transparenzregister;Leistungen außerhalb der StBVV;;1;19;;true;;;
