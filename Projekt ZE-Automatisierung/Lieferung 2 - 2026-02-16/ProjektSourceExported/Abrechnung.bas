@@ -80,6 +80,7 @@ Private Sub AppendUnbilledPositionsFromMaSheet(ByVal ws As Worksheet, _
     Dim colAbgerechnet As Long: colAbgerechnet = Utils.FindHeaderCol(ws, HEADER_ROW, HEADER_ABGERECHNET)
     Dim colMdNr As Long: colMdNr = Utils.FindHeaderCol(ws, HEADER_ROW, HEADER_MDNR)
     Dim colMd As Long: colMd = Utils.FindHeaderCol(ws, HEADER_ROW, HEADER_MD)
+    Dim colTaetigkeit As Long: colTaetigkeit = Utils.FindHeaderCol(ws, HEADER_ROW, HEADER_TAETIGKEIT)
 
     Dim lastRow As Long
     lastRow = Utils.FindLastUsedRow(ws)
@@ -105,6 +106,9 @@ Private Sub AppendUnbilledPositionsFromMaSheet(ByVal ws As Worksheet, _
     
     ' Spaltenbreite anpassen
     wsDest.Range(HEADER_RANGE).EntireColumn.AutoFit
+    wsDest.Columns(colTaetigkeit).ColumnWidth = 130
+    wsDest.Columns(colTaetigkeit).WrapText = True
+    
     Dim colBetrag As Long: colBetrag = Utils.FindHeaderCol(wsDest, HEADER_ROW, HEADER_BETRAG)
     wsDest.Columns(colBetrag).ColumnWidth = 10
    
