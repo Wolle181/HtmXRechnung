@@ -16,7 +16,10 @@
       "Bash(ls -la *.xlam)",
       "Bash(ls -la \"C:\\\\WORK\\\\Excel2Zugferd.xlam\")",
       "Bash(git show *)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"d:\\\\UBXGitHub\\\\HtmXRechnung\\\\Projekt excel2Zugferd\\\\_analyze_vba.ps1\")",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"d:\\\\UBXGitHub\\\\HtmXRechnung\\\\Projekt excel2Zugferd\\\\_compare_xlam.ps1\")",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"d:\\\\UBXGitHub\\\\HtmXRechnung\\\\Projekt excel2Zugferd\\\\_check_installed.ps1\")"
     ]
   }
 }
