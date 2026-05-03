@@ -1,7 +1,7 @@
 #Requires -Version 5.0
 # Deinstalliert Excel2Zugferd.xlam vollstaendig:
 #   1. Deaktivierung per COM (falls Excel geschlossen werden kann)
-#   2. Registry-Eintraege (OPEN/OPENx) entfernen
+#   2. Registry-Eintraege (OPEN/OPENx, Add-in Manager, AddInLoadTimes) entfernen
 #   3. XLAM-Datei loeschen
 
 $ErrorActionPreference = "Stop"
@@ -33,53 +33,94 @@ function Unregister-ViaCOM([string]$addinPath) {
     }
 }
 
-function Unregister-ViaRegistry() {
+function Remove-RegistryValuesByName([string]$keyPath) {
+    # Loescht alle Werte in keyPath, deren *Name* "Excel2Zugferd" enthaelt.
+    if (-not (Test-Path $keyPath)) { return $false }
+    $props = Get-ItemProperty -Path $keyPath -ErrorAction SilentlyContinue
+    if (-not $props) { return $false }
     $found = $false
-    foreach ($ver in @("16.0","17.0","15.0","14.0")) {
-        $optionsKey = "HKCU:\Software\Microsoft\Office\$ver\Excel\Options"
-        if (-not (Test-Path $optionsKey)) { continue }
-
-        $props = Get-ItemProperty -Path $optionsKey -ErrorAction SilentlyContinue
-        if (-not $props) { continue }
-
-        $props.PSObject.Properties | Where-Object { $_.Name -match '^OPEN\d*$' } | ForEach-Object {
-            if ($_.Value -like "*Excel2Zugferd*") {
-                Remove-ItemProperty -Path $optionsKey -Name $_.Name -ErrorAction SilentlyContinue
-                Write-Host "  Registry-Eintrag entfernt: Office $ver -> $($_.Name) = $($_.Value)" -ForegroundColor Green
-                $found = $true
-            }
+    $props.PSObject.Properties |
+        Where-Object { $_.Name -like "*Excel2Zugferd*" } |
+        ForEach-Object {
+            Remove-ItemProperty -Path $keyPath -Name $_.Name -ErrorAction SilentlyContinue
+            Write-Host "    Entfernt: $($_.Name)" -ForegroundColor Green
+            $found = $true
         }
-    }
-    if (-not $found) {
-        Write-Host "  Kein Registry-Eintrag fuer Excel2Zugferd gefunden." -ForegroundColor Yellow
+    return $found
+}
+
+function Unregister-ViaRegistry() {
+    foreach ($ver in @("16.0","17.0","15.0","14.0")) {
+        $excelBase = "HKCU:\Software\Microsoft\Office\$ver\Excel"
+        if (-not (Test-Path $excelBase)) { continue }
+
+        Write-Host "  Office $ver gefunden – bereinige Keys..." -ForegroundColor Cyan
+
+        # OPEN/OPENx – Auto-Lade-Eintraege
+        $optKey = "$excelBase\Options"
+        if (Test-Path $optKey) {
+            $props = Get-ItemProperty -Path $optKey -ErrorAction SilentlyContinue
+            $props.PSObject.Properties | Where-Object { $_.Name -match '^OPEN\d*$' -and $_.Value -like "*Excel2Zugferd*" } |
+                ForEach-Object {
+                    Remove-ItemProperty -Path $optKey -Name $_.Name -ErrorAction SilentlyContinue
+                    Write-Host "    Options\$($_.Name) entfernt." -ForegroundColor Green
+                }
+        }
+
+        # Add-in Manager – die sichtbare AddIn-Liste im Dialog
+        Write-Host "  Add-in Manager..." -NoNewline
+        if (Remove-RegistryValuesByName "$excelBase\Add-in Manager") {
+            # Bereits ausgegeben
+        } else {
+            Write-Host " nichts gefunden." -ForegroundColor Yellow
+        }
+
+        # AddInLoadTimes – Lade-Timing-Cache
+        Write-Host "  AddInLoadTimes..." -NoNewline
+        if (Remove-RegistryValuesByName "$excelBase\AddInLoadTimes") {
+            # Bereits ausgegeben
+        } else {
+            Write-Host " nichts gefunden." -ForegroundColor Yellow
+        }
     }
 }
 
 # ---------------------------------------------------------------------------
 Write-Host "=== Excel2ZUGFeRD AddIn Deinstallation ===" -ForegroundColor Cyan
+Write-Host "Bitte sicherstellen, dass Excel geschlossen ist."
+Write-Host ""
 
 # 1. COM-Deaktivierung
-Write-Host "Deaktiviere AddIn in Excel..."
+Write-Host "1. Deaktiviere AddIn in Excel..."
 try {
     Unregister-ViaCOM $targetPath
 } catch {
     Write-Host "  COM-Zugriff nicht moeglich (Excel evtl. offen), ueberspringe COM-Schritt." -ForegroundColor Yellow
-    Write-Host "  Bitte Excel schliessen und danach pruefen, ob das AddIn noch aktiv ist." -ForegroundColor Yellow
 }
 
 # 2. Registry bereinigen
-Write-Host "Bereinige Registry-Eintraege..."
+Write-Host ""
+Write-Host "2. Bereinige Registry-Eintraege..."
 Unregister-ViaRegistry
 
 # 3. XLAM-Datei loeschen
-Write-Host "Loesche AddIn-Datei..."
-if (Test-Path $targetPath) {
-    Remove-Item $targetPath -Force
-    Write-Host "  Datei geloescht: $targetPath" -ForegroundColor Green
-} else {
-    Write-Host "  Datei nicht vorhanden: $targetPath" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "3. Loesche AddIn-Datei(en)..."
+$deleted = $false
+foreach ($path in @(
+    $targetPath,
+    "C:\WORK\$addinName"
+)) {
+    if (Test-Path $path) {
+        Remove-Item $path -Force
+        Write-Host "  Geloescht: $path" -ForegroundColor Green
+        $deleted = $true
+    }
+}
+if (-not $deleted) {
+    Write-Host "  Keine XLAM-Datei gefunden." -ForegroundColor Yellow
 }
 
 Write-Host ""
 Write-Host "=== Deinstallation abgeschlossen! ===" -ForegroundColor Cyan
-Write-Host "Excel2ZUGFeRD ist vollstaendig entfernt. Bitte Excel neu starten."
+Write-Host "Excel2ZUGFeRD ist vollstaendig entfernt. Excel neu starten um zu bestaetigen."

@@ -10,7 +10,9 @@
       "WebSearch",
       "WebFetch(domain:andrewmoss.me)",
       "WebFetch(domain:dailydoseofexcel.com)",
-      "WebFetch(domain:www.excelforum.com)"
+      "WebFetch(domain:www.excelforum.com)",
+      "Bash(reg query *)",
+      "PowerShell(reg query *)"
     ]
   }
 }
