@@ -12,7 +12,11 @@
       "WebFetch(domain:dailydoseofexcel.com)",
       "WebFetch(domain:www.excelforum.com)",
       "Bash(reg query *)",
-      "PowerShell(reg query *)"
+      "PowerShell(reg query *)",
+      "Bash(ls -la *.xlam)",
+      "Bash(ls -la \"C:\\\\WORK\\\\Excel2Zugferd.xlam\")",
+      "Bash(git show *)",
+      "Read(//tmp/**)"
     ]
   }
 }

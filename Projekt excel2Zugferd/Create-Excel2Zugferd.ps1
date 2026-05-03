@@ -1,7 +1,7 @@
 #Requires -Version 5.0
 # Erstellt Excel2Zugferd.xlam mit VBA-Makro, Ribbon-Button und Pferd-Icon (in ZIP eingebettet).
 
-$OutputPath = "C:\WORK\Excel2Zugferd.xlam"
+$OutputPath = Join-Path (Get-Location).Path "Excel2Zugferd.xlam"
 
 # =============================================================================
 # [0/2]  Pferd-Icon erzeugen: Schachspringer U+265E aus System-Font als PNG
