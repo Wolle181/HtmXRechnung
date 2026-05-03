@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe *)",
+      "Bash(grep -E \"\\\\.\\(py|md|txt|json|yaml|yml|vb|bas|xml\\)$\")",
+      "Bash(grep -E \"\\\\.\\(py|spec|ini\\)$\")",
+      "WebFetch(domain:bettersolutions.com)",
+      "WebFetch(domain:jkp-ads.com)",
+      "WebFetch(domain:www.mrexcel.com)",
+      "WebSearch",
+      "WebFetch(domain:andrewmoss.me)",
+      "WebFetch(domain:dailydoseofexcel.com)",
+      "WebFetch(domain:www.excelforum.com)"
+    ]
+  }
+}

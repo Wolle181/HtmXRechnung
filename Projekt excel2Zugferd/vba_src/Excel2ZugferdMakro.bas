@@ -1,0 +1,146 @@
+'Attribute VB_Name = "Excel2ZugferdMakro"
+Option Explicit
+
+' Pfad zum Verzeichnis mit excel2zugferd.exe
+' ".\" = gleiches Verzeichnis wie die geoeffnete Excel-Datei (Standard)
+' Fuer absoluten Pfad: z.B. "C:\Tools\Excel2ZUGFeRD\"
+Const E2ZPFAD As String = ".\"
+
+' Direkt per Alt+F8 aufrufbar; onAction im Ribbon zeigt direkt auf diese Sub
+Public Sub RunMake(Optional control As IRibbonControl = Nothing)
+    Dim tabsheetNummer As Long
+    Dim sheetName     As String
+    Dim excelDateiPfad As String
+    Dim exePfad       As String
+    Dim befehl        As String
+    Dim wsh           As Object
+
+    On Error GoTo ErrHandler
+    Application.Cursor = xlWait
+
+    ' Tabsheet-Position (0-basiert: erstes Sheet = 0)
+    tabsheetNummer = ActiveSheet.Index - 1
+    sheetName = ActiveSheet.Name
+
+    ' Vollstaendiger Pfad inkl. Dateiendung der geoeffneten Excel-Datei
+    excelDateiPfad = ActiveWorkbook.FullName
+
+    ' exe-Pfad: E2ZPFAD relativ zum Verzeichnis der Excel-Datei
+    exePfad = ActiveWorkbook.Path & "\" & E2ZPFAD & "excel2zugferd.exe"
+
+    ' Kommandozeile: "exePfad" TABSHEET_NUMMER "EXCELDATEIPFAD"
+    befehl = """" & exePfad & """ " & tabsheetNummer & " """ & excelDateiPfad & """"
+
+    Set wsh = CreateObject("WScript.Shell")
+    wsh.Run befehl, 0, False
+    Set wsh = Nothing
+
+    Application.Cursor = xlDefault
+    MsgBox "ZUGFeRD-Rechnung für Tabellenblatt """ & sheetName & """ wurde erzeugt.", _
+           vbInformation, "Excel2ZUGFeRD"
+    Exit Sub
+
+ErrHandler:
+    Application.Cursor = xlDefault
+    MsgBox "Fehler " & Err.Number & ": " & Err.Description, _
+           vbCritical, "Excel2ZUGFeRD"
+End Sub
+
+' Ribbon-Callback: liefert das Icon fuer image="horse"
+' Rueckgabe als Object (nicht IPictureDisp) vermeidet Cast-Probleme in manchen Excel-Versionen
+Public Function LoadImage(id As String) As Object
+    On Error Resume Next
+    LoadImage = Nothing
+    If id = "horse" Then
+        Set LoadImage = BmpFromBase64(HorseIconB64())
+    End If
+    On Error GoTo 0
+End Function
+
+' Dekodiert Base64-BMP -> Tempdatei -> Object (StdPicture via LoadPicture)
+Private Function BmpFromBase64(b64 As String) As Object
+    Dim xml   As Object
+    Dim node  As Object
+    Dim bytes() As Byte
+    Dim tmp   As String
+    Dim f     As Integer
+
+    ' Base64 -> Byte-Array via MSXML (auf jedem Windows verfuegbar)
+    Set xml = CreateObject("MSXML2.DOMDocument")
+    Set node = xml.createElement("b64")
+    node.DataType = "bin.base64"
+    node.Text = b64
+    bytes = node.nodeTypedValue
+
+    ' Bytes als BMP in Tempverzeichnis schreiben
+    tmp = Environ("TEMP") & "\e2z_icon.bmp"
+    f = FreeFile
+    Open tmp For Binary As #f
+    Put #f, , bytes
+    Close #f
+
+    ' Laden und aufraumen
+    Dim pic As Object
+    Set pic = LoadPicture(tmp)
+    Kill tmp
+    Set BmpFromBase64 = pic
+End Function
+
+Private Function HorseIconB64() As String
+    Dim s As String
+    s = s & "Qk02DAAAAAAAADYAAAAoAAAAIAAAACAAAAABABgAAAAAAAAAAADEDgAAxA4AAAAAAAAAAAAA////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////8u7px7Whx7Whx7Whx7Whx7Whx7Wh"
+    s = s & "x7Whx7Whx7Whx7Whx7Wh5NzS////////////////////////////////////////////////////////"
+    s = s & "////////////////////x7WheU4feU4feU4feU4feU4feU4feU4feU4feU4feU4feU4frZN2////////"
+    s = s & "////////////////////////////////////////////////////////////////////x7WheU4feU4f"
+    s = s & "eU4feU4feU4feU4feU4feU4fmXhU5NzSmXhUpIZm////////////////////////////////////////"
+    s = s & "////////////////////////////////////x7WheU4feU4feU4feU4feU4feU4feU4feU4feU4f////"
+    s = s & "tp+FeU4f////////////////////////////////////////////////////////////////////////"
+    s = s & "////8u7peU4feU4feU4feU4feU4feU4feU4feU4feU4f6+Xex7WheU4f////////////////////////"
+    s = s & "////////////////////////////////////////////////////////v6qUeU4feU4feU4feU4feU4f"
+    s = s & "eU4feU4feU4f5NzSx7WheU4f////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////tp+FeU4feU4feU4feU4feU4feU4feU4f5NzSx7WheU4f////////"
+    s = s & "////////////////////////////////////////////////////////////1sm6x7Wh+ff0////////"
+    s = s & "tp+FeU4feU4feU4feU4feU4feU4f5NzSpIZmpIZm////////////////////////////////////////"
+    s = s & "////////////////////////1sm6eU4feU4fmXhU1sm6////////tp+FeU4feU4feU4feU4feU4f5NzS"
+    s = s & "eU4fv6qU////////////////////////////////////////////////////////////////jGhAjGhA"
+    s = s & "eU4feU4feU4fmXhUtp+F5NzSjGhAeU4feU4feU4feU4f6+XeeU4f3dPH////////////////////////"
+    s = s & "////////////////////////////////////////eU4fpIZmmXhUeU4feU4feU4feU4feU4feU4feU4f"
+    s = s & "eU4feU4fmXhUtp+FjGhA////////////////////////////////////////////////////////////"
+    s = s & "////////6+XeeU4feU4feU4feU4feU4feU4feU4feU4feU4feU4feU4fx7WheU4f1sm6////////////"
+    s = s & "////////////////////////////////////////////////////////////5NzSeU4feU4feU4feU4f"
+    s = s & "eU4feU4feU4feU4feU4feU4fpIZmjGhA////////////////////////////////////////////////"
+    s = s & "////////////////////////////////1sm6eU4feU4feU4feU4feU4feU4feU4feU4fjGhAeU4f6+Xe"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////1sm6eU4fpIZmv6qUeU4feU4feU4feU4feU4f1sm6////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////eU4feU4fmXhUeU4feU4feU4f"
+    s = s & "eU4fz7+u////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////5NzSjGhAeU4feU4feU4feU4frZN2////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////5NzS"
+    s = s & "eU4fmXhUeU4feU4f6+Xe////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////z7+upIZm+ff0eU4frZN2////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////+ff0////////rZN2+ff0////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////////////////////////////////////////////////////////////////////////////"
+    s = s & "////////"
+    HorseIconB64 = s
+End Function
+
