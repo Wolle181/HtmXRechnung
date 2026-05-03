@@ -1,10 +1,18 @@
 'Attribute VB_Name = "Excel2ZugferdMakro"
 Option Explicit
 
+' API-Funktion zum Erstellen tiefer Pfadstrukturen
+#If VBA7 Then
+    Private Declare PtrSafe Function MakeSureDirectoryPathExists Lib "imagehlp.dll" (ByVal lpPath As String) As Long
+#Else
+    Private Declare Function MakeSureDirectoryPathExists Lib "imagehlp.dll" (ByVal lpPath As String) As Long
+#End If
+
 ' Pfad zum Verzeichnis mit excel2zugferd.exe
 ' ".\" = gleiches Verzeichnis wie die geoeffnete Excel-Datei (Standard)
 ' Fuer absoluten Pfad: z.B. "C:\Tools\Excel2ZUGFeRD\"
-Const E2ZPFAD As String = ".\"
+'Const E2ZPFAD As String = ".\"  => Dan weiter unten relativen Pfad zu absolutem machen:  exePfad = ActiveWorkbook.Path & "\" & E2ZPFAD & "excel2zugferd.exe"
+Const E2ZPFAD As String = "C:\Rechnungen\Excel2Zugferd\"
 
 ' Direkt per Alt+F8 aufrufbar; onAction im Ribbon zeigt direkt auf diese Sub
 Public Sub RunMake(Optional control As IRibbonControl = Nothing)
@@ -33,7 +41,14 @@ Public Sub RunMake(Optional control As IRibbonControl = Nothing)
     excelDateiPfad = ActiveWorkbook.FullName
 
     ' exe-Pfad: E2ZPFAD relativ zum Verzeichnis der Excel-Datei
-    exePfad = ActiveWorkbook.Path & "\" & E2ZPFAD & "excel2zugferd.exe"
+    exePfad = E2ZPFAD & "excel2zugferd.exe"
+    If CreateDeepPath(E2ZPFAD) Then
+        Debug.Print "Erfolg: Pfad ist bereit."
+    Else
+        Application.Cursor = xlDefault
+        MsgBox "Fehler: Pfad konnte nicht erstellt werden.", vbCritical
+        Exit Sub
+    End If
 
     ' Kommandozeile: "exePfad" TABSHEET_NUMMER "EXCELDATEIPFAD"
     befehl = """" & exePfad & """ " & tabsheetNummer & " """ & excelDateiPfad & """"
@@ -53,6 +68,23 @@ ErrHandler:
            vbCritical, "Excel2ZUGFeRD"
 End Sub
 
+
+''' <summary>
+''' Erstellt einen vollständigen Pfad inklusive aller Unterverzeichnisse.
+''' </summary>
+''' <param name="ZielPfad">Der zu erstellende Pfad.</param>
+''' <returns>True, wenn erfolgreich oder bereits existent.</returns>
+Public Function CreateDeepPath(ByVal ZielPfad As String) As Boolean
+    ' Die API-Funktion benötigt zwingend einen abschließenden Backslash
+    If Right(ZielPfad, 1) <> "\" Then ZielPfad = ZielPfad & "\"
+    
+    ' Rückgabewert der API ist 1 bei Erfolg, 0 bei Fehler
+    If MakeSureDirectoryPathExists(ZielPfad) <> 0 Then
+        CreateDeepPath = True
+    Else
+        CreateDeepPath = False
+    End If
+End Function
 
 
 
