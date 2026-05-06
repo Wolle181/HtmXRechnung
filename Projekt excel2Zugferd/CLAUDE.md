@@ -86,3 +86,8 @@ Company master data and column mappings are stored in an INI file (path configur
 ### VBA Source (`vba_src/`)
 - `Excel2ZugferdMakro.bas` — The ribbon button handler; calls `exe` and shows result in MsgBox
 - `DebugTools.bas` — Utilities for exporting VBA modules during development
+
+**IMPORTANT:** `vba_src/` is a **read-only, human-readable backup** only. It is NOT a build source.
+The VBA code is embedded directly as a here-string inside `Create-Excel2Zugferd.ps1`.
+When changing VBA logic, edit the here-string in the PS1 file — then update `vba_src/` manually as a mirror.
+Never modify `Create-Excel2Zugferd.ps1` to read from `vba_src/` at build time.
