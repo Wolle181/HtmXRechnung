@@ -1,0 +1,29 @@
+Fehler beim Tabellendruck: Invalid value provided width=185: effective page width is 165.0015555555555
+col_widths: (11, 20, 69, 15, 17, 18, 15, 20)
+Zeile 1 Länge: 8 Inhalt: ['Pos.', 'Datum', 'Beschreibung', 'Menge', 'Einheit', 'Einzelpreis', 'Gesamt', 'H']
+Zeile 2 Länge: 8 Inhalt: ['1', '2024-01-01', 'Test', '1', 'Stk', '10', '10', 'Bemerkung H']
+Zeile 3 Länge: 8 Inhalt: ['2', '2024-01-02', 'Test2', '2', 'Stk', '20', '40', '']
+Traceback (most recent call last):
+  File "C:\Users\Charis\Projekte\excel2zugferd\src\handle_pdf.py", line 286, in print_positions
+    with self.table(
+         ~~~~~~~~~~^
+        borders_layout="NO_HORIZONTAL_LINES",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+        v_align="TOP",
+        ^^^^^^^^^^^^^^
+    ) as table:
+    ^
+  File "C:\Users\Charis\AppData\Roaming\uv\python\cpython-3.14-windows-x86_64-none\Lib\contextlib.py", line 148, in __exit__
+    next(self.gen)
+    ~~~~^^^^^^^^^^
+  File "C:\Users\Charis\Projekte\excel2zugferd\.venv\Lib\site-packages\fpdf\fpdf.py", line 6447, in table
+    table.render()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\Charis\Projekte\excel2zugferd\.venv\Lib\site-packages\fpdf\table.py", line 213, in render
+    raise ValueError(
+        f"Invalid value provided width={self._width}: effective page width is {self._fpdf.epw}"
+    )
+ValueError: Invalid value provided width=185: effective page width is 165.0015555555555
+
+
