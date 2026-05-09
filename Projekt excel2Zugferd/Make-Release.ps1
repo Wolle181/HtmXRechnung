@@ -5,7 +5,7 @@
 #   Release\Excel2ZugferdSetup.ps1      – eigentliche Setup-Logik
 
 $ErrorActionPreference = "Stop"
-$root       = $PSScriptRoot
+$root = $PSScriptRoot
 $releaseDir = Join-Path $root "Release"
 $payloadDir = Join-Path $releaseDir "Excel2ZugferdSetupPayload"
 
@@ -41,7 +41,8 @@ foreach ($item in $items) {
         if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
         Copy-Item $src $dst -Recurse -Force
         Write-Host "   Ordner kopiert:  $item\" -ForegroundColor Green
-    } else {
+    }
+    else {
         Copy-Item $src $payloadDir -Force
         Write-Host "   Datei kopiert:   $item" -ForegroundColor Green
     }
@@ -126,6 +127,11 @@ pause
 $setupBat | Set-Content -Path $setupBatPath -Encoding Default
 Write-Host "   $setupBatPath" -ForegroundColor Green
 
+$src = Join-Path $root "doc\README Endanwender.html"
+Copy-Item $src $releaseDir -Force
+$src = Join-Path $root "doc\README Endanwender.pdf"
+Copy-Item $src $releaseDir -Force
+
 # ---------------------------------------------------------------------------
 # Zusammenfassung
 # ---------------------------------------------------------------------------
@@ -136,12 +142,15 @@ Write-Host "Struktur:" -ForegroundColor White
 Write-Host "  Release\"
 Write-Host "  ├── Excel2ZugferdSetup.bat       <- Doppelklick zum Installieren"
 Write-Host "  ├── Excel2ZugferdSetup.ps1"
+Write-Host "  ├── README Endanwender.pdf"
+Write-Host "  ├── README Endanwender.html"
 Write-Host "  └── Excel2ZugferdSetupPayload\"
 foreach ($item in $items) {
     $src = Join-Path $root $item
     if (Test-Path $src -PathType Container) {
         Write-Host "      ├── $item\"
-    } elseif (Test-Path $src) {
+    }
+    elseif (Test-Path $src) {
         Write-Host "      ├── $item"
     }
 }

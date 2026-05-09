@@ -1,3 +1,3 @@
-@powershell -ExecutionPolicy Bypass -File Create-Release.ps1 
+@powershell -ExecutionPolicy Bypass -File Make-Release.ps1 
 
 pause
