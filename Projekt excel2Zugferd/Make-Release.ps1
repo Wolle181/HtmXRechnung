@@ -1,4 +1,4 @@
-#Requires -Version 5.0
+﻿#Requires -Version 5.0
 # Erstellt das Release-Paket:
 #   Release\Excel2ZugferdSetupPayload\  – alle Programmdateien
 #   Release\Excel2ZugferdSetup.bat      – Endanwender-Installer (Doppelklick)
@@ -6,8 +6,19 @@
 
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
-$releaseDir = Join-Path $root "Release"
+$releaseDir = Join-Path $root "Release\Auslieferung"
 $payloadDir = Join-Path $releaseDir "Excel2ZugferdSetupPayload"
+
+# ---------------------------------------------------------------------------
+# 0. Release-Verzeichnis bereinigen
+# ---------------------------------------------------------------------------
+$releaseRoot = Join-Path $root "Release"
+if (Test-Path $releaseRoot) {
+    Write-Host "0. Loesche altes Release-Verzeichnis..." -ForegroundColor Cyan
+    Remove-Item $releaseRoot -Recurse -Force
+    Write-Host "   $releaseRoot geloescht." -ForegroundColor Green
+    Write-Host ""
+}
 
 # ---------------------------------------------------------------------------
 # 1. Payload-Verzeichnis anlegen und befuellen
@@ -133,27 +144,39 @@ $src = Join-Path $root "doc\README Endanwender.pdf"
 Copy-Item $src $releaseDir -Force
 
 # ---------------------------------------------------------------------------
+# ZIP erstellen
+# ---------------------------------------------------------------------------
+Write-Host ""
+Write-Host "4. Erstelle ZIP-Archiv..." -ForegroundColor Cyan
+$zipPath = Join-Path $root "Release\excel2Zugferd-Lösung.zip"
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+Compress-Archive -Path "$releaseDir\*" -DestinationPath $zipPath -Force
+Write-Host "   $zipPath" -ForegroundColor Green
+
+# ---------------------------------------------------------------------------
 # Zusammenfassung
 # ---------------------------------------------------------------------------
 Write-Host ""
 Write-Host "=== Release-Paket fertig! ===" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Struktur:" -ForegroundColor White
-Write-Host "  Release\"
-Write-Host "  ├── Excel2ZugferdSetup.bat       <- Doppelklick zum Installieren"
-Write-Host "  ├── Excel2ZugferdSetup.ps1"
-Write-Host "  ├── README Endanwender.pdf"
-Write-Host "  ├── README Endanwender.html"
-Write-Host "  └── Excel2ZugferdSetupPayload\"
+Write-Host "  Release\Auslieferung"
+Write-Host "  +-- Excel2ZugferdSetup.bat       <- Doppelklick zum Installieren"
+Write-Host "  +-- Excel2ZugferdSetup.ps1"
+Write-Host "  +-- README Endanwender.pdf"
+Write-Host "  +-- README Endanwender.html"
+Write-Host "  \-- Excel2ZugferdSetupPayload\"
 foreach ($item in $items) {
     $src = Join-Path $root $item
     if (Test-Path $src -PathType Container) {
-        Write-Host "      ├── $item\"
+        Write-Host "      +-- $item\"
     }
     elseif (Test-Path $src) {
-        Write-Host "      ├── $item"
+        Write-Host "      +-- $item"
     }
 }
+Write-Host "  Release\"
+Write-Host "  +-- excel2Zugferd-Lösung.zip      <- ZIP zum Weitergeben"
 Write-Host ""
-Write-Host "Zum Verteilen den gesamten Ordner Release\ weitergeben."
+Write-Host "Zum Verteilen die Datei excel2Zugferd-Lösung.zip weitergeben."
 Write-Host "Endanwender starten: Excel2ZugferdSetup.bat (Doppelklick)"
