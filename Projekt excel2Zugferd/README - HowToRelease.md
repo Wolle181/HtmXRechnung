@@ -7,20 +7,19 @@ Folgende Dateien müssen im Projektverzeichnis vorliegen, bevor ein Release geba
 - `excel2zugferd.exe` (PyInstaller-Build)
 - `Excel2Zugferd.xlam` (Excel Add-in, erzeugt durch `Create-Excel2Zugferd.ps1`)
 - `_internal\` (PyInstaller-Laufzeitdateien)
-- `Install-Excel2Zugferd.ps1` / `Install.bat`
-- `Uninstall-Excel2Zugferd.ps1` / `Uninstall.bat`
+- `Install-Excel2Zugferd.ps1` sowie das zugehörige `Install.bat`
+- `Uninstall-Excel2Zugferd.ps1` sowie das zugehörige  `Uninstall.bat`
+- sowie das eigentliche AddIn `Excel2Zugferd.xlam`. 
 
-Das XLAM neu bauen (falls nötig):
-```powershell
-powershell -ExecutionPolicy Bypass -File Create-Excel2Zugferd.ps1
-```
+Dieses AddIn mit der Endung XLAM wird gebaut mit folgendem Aufruf: `Create-Excel2ZugferdAddIn.cmd`
+
 
 ---
 
 ## Release bauen
 
-```powershell
-powershell -ExecutionPolicy Bypass -File Create-Release.ps1
+```cmd
+Make-Release.cmd 
 ```
 
 Das Script legt folgende Struktur an:
