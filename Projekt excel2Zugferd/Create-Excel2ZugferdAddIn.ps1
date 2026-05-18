@@ -7,60 +7,7 @@
 $OutputPath = Join-Path (Get-Location).Path "Excel2Zugferd.xlam"
 $IconPath = Join-Path (Get-Location).Path "horse.bmp"
 
-# =============================================================================
-# [0/3]  Pferd-Icon erzeugen: Schachspringer U+265E aus System-Font als BMP
-# =============================================================================
 Write-Host "=== Excel2ZUGFeRD AddIn Generator ===" -ForegroundColor Cyan
-Write-Host "`n[0/3] Generiere Pferd-Icon (Schachspringer)..." -ForegroundColor White
-
-Add-Type -AssemblyName System.Drawing
-
-$iconSize = 32
-$bmp = New-Object System.Drawing.Bitmap($iconSize, $iconSize, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-$g = [System.Drawing.Graphics]::FromImage($bmp)
-$g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-$g.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
-$g.Clear([System.Drawing.Color]::White)
-
-$knightChar = [char]0x265E          # ♞ BLACK CHESS KNIGHT
-
-$usedFontName = $null
-foreach ($fname in @("Segoe UI Symbol", "Segoe UI Emoji", "Arial Unicode MS")) {
-    try {
-        $ff = New-Object System.Drawing.FontFamily($fname)   # wirft Exception wenn Font fehlt
-        $usedFontName = $fname
-        break
-    }
-    catch { }
-}
-
-if ($usedFontName) {
-    $font = New-Object System.Drawing.Font($usedFontName, 26,
-        [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-    $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(31, 78, 121))
-    $sf = New-Object System.Drawing.StringFormat
-    $sf.Alignment = [System.Drawing.StringAlignment]::Center
-    $sf.LineAlignment = [System.Drawing.StringAlignment]::Center
-    $g.DrawString($knightChar, $font, $brush, (New-Object System.Drawing.RectangleF(0, 0, 32, 32)), $sf)
-    $font.Dispose(); $brush.Dispose()
-    Write-Host "    Springer mit Font '$usedFontName' gerendert." -ForegroundColor Green
-}
-else {
-    $font = New-Object System.Drawing.Font("Arial", 9, [System.Drawing.FontStyle]::Bold)
-    $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(31, 78, 121))
-    $g.DrawString("E2Z", $font, $brush, 2, 11)
-    $font.Dispose(); $brush.Dispose()
-    Write-Host "    Kein Symbol-Font gefunden, Fallback 'E2Z'." -ForegroundColor Yellow
-}
-$g.Dispose()
-
-# Als BMP speichern (LoadPicture in VBA unterstuetzt BMP zuverlaessig)
-$ms = New-Object System.IO.MemoryStream
-$bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Bmp)
-$bmp.Dispose()
-[System.IO.File]::WriteAllBytes($IconPath, $ms.ToArray())
-$ms.Dispose()
-Write-Host "    Icon gespeichert: $IconPath" -ForegroundColor Green
 
 # =============================================================================
 # VBA-Code: direkt eingebettet (vba_src\ ist nur ein lesbares Backup, keine Build-Quelle)
@@ -228,7 +175,7 @@ $CustomUIXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 # =============================================================================
 # [1/2]  XLAM via Excel COM erzeugen
 # =============================================================================
-Write-Host "`n[1/3] Erstelle XLAM via Excel..." -ForegroundColor White
+Write-Host "`n[1/2] Erstelle XLAM via Excel..." -ForegroundColor White
 
 try {
     $excel = New-Object -ComObject Excel.Application
@@ -272,7 +219,7 @@ Write-Host "    XLAM in Tempdatei gespeichert." -ForegroundColor Green
 # =============================================================================
 # [2/2]  Ribbon-XML in ZIP einbetten
 # =============================================================================
-Write-Host "`n[2/3] Bettet Ribbon-XML ein..." -ForegroundColor White
+Write-Host "`n[2/2] Bettet Ribbon-XML ein..." -ForegroundColor White
 
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -340,7 +287,6 @@ catch {
 }
 
 # =============================================================================
-Write-Host "`n[3/3] Fertig!" -ForegroundColor White
 Write-Host "`n=== Fertig! ===" -ForegroundColor Cyan
 Write-Host "AddIn-Datei: $OutputPath"
 Write-Host "Icon-Datei:  $IconPath  (muss neben der XLAM liegen)"

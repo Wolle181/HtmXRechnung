@@ -3,6 +3,8 @@
 #   1. Deaktivierung per COM (falls Excel geschlossen werden kann)
 #   2. Registry-Eintraege (OPEN/OPENx, Add-in Manager, AddInLoadTimes) entfernen
 #   3. XLAM-Datei loeschen
+# Das Programmverzeichnis C:\Rechnungen\Excel2Zugferd wird anschliessend
+# vom aufrufenden Uninstall.bat per RMDIR geloescht.
 
 $ErrorActionPreference = "Stop"
 
@@ -126,6 +128,7 @@ if (Test-Path $iconPath) {
     Remove-Item $iconPath -Force
     Write-Host "  Geloescht: $iconPath" -ForegroundColor Green
 }
+
 
 Write-Host ""
 Write-Host "=== Deinstallation abgeschlossen! ===" -ForegroundColor Cyan
