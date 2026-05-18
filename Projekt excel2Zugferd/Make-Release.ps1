@@ -32,6 +32,7 @@ Write-Host "   $payloadDir" -ForegroundColor Green
 $items = @(
     "excel2zugferd.exe",
     "Excel2Zugferd.xlam",
+    "horse.bmp",
     "Install-Excel2Zugferd.ps1",
     "Install.bat",
     "Uninstall-Excel2Zugferd.ps1",
