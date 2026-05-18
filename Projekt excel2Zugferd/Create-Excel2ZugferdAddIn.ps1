@@ -1,18 +1,22 @@
 #Requires -Version 5.0
-# Erstellt Excel2Zugferd.xlam mit VBA-Makro, Ribbon-Button und Pferd-Icon (in ZIP eingebettet).
+# Erstellt Excel2Zugferd.xlam mit VBA-Makro und Ribbon-Button.
+# Das Icon (horse.bmp) wird als separate Datei neben der XLAM erzeugt
+# und per VBA-getImage-Callback geladen (OPC-Bildreferenzen werden auf
+# manchen Excel-Installationen nicht unterstuetzt).
 
 $OutputPath = Join-Path (Get-Location).Path "Excel2Zugferd.xlam"
+$IconPath   = Join-Path (Get-Location).Path "horse.bmp"
 
 # =============================================================================
-# [0/2]  Pferd-Icon erzeugen: Schachspringer U+265E aus System-Font als PNG
+# [0/3]  Pferd-Icon erzeugen: Schachspringer U+265E aus System-Font als BMP
 # =============================================================================
 Write-Host "=== Excel2ZUGFeRD AddIn Generator ===" -ForegroundColor Cyan
-Write-Host "`n[0/2] Generiere Pferd-Icon (Schachspringer)..." -ForegroundColor White
+Write-Host "`n[0/3] Generiere Pferd-Icon (Schachspringer)..." -ForegroundColor White
 
 Add-Type -AssemblyName System.Drawing
 
 $iconSize = 32
-$bmp = New-Object System.Drawing.Bitmap($iconSize, $iconSize, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
+$bmp = New-Object System.Drawing.Bitmap($iconSize, $iconSize, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
 $g.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
@@ -20,11 +24,10 @@ $g.Clear([System.Drawing.Color]::White)
 
 $knightChar = [char]0x265E          # ♞ BLACK CHESS KNIGHT
 
-# Font-Suche: bevorzuge Symbol-Fonts mit dem Springer-Zeichen
 $usedFontName = $null
 foreach ($fname in @("Segoe UI Symbol", "Segoe UI Emoji", "Arial Unicode MS")) {
     try {
-        $ff = New-Object System.Drawing.FontFamily($fname)
+        $ff = New-Object System.Drawing.FontFamily($fname)   # wirft Exception wenn Font fehlt
         $usedFontName = $fname
         break
     }
@@ -36,15 +39,13 @@ if ($usedFontName) {
         [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
     $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(31, 78, 121))
     $sf = New-Object System.Drawing.StringFormat
-    $sf.Alignment = [System.Drawing.StringAlignment]::Center
+    $sf.Alignment     = [System.Drawing.StringAlignment]::Center
     $sf.LineAlignment = [System.Drawing.StringAlignment]::Center
     $g.DrawString($knightChar, $font, $brush, (New-Object System.Drawing.RectangleF(0, 0, 32, 32)), $sf)
     $font.Dispose(); $brush.Dispose()
     Write-Host "    Springer mit Font '$usedFontName' gerendert." -ForegroundColor Green
-}
-else {
-    # Fallback: "E2Z"-Text
-    $font = New-Object System.Drawing.Font("Arial", 9, [System.Drawing.FontStyle]::Bold)
+} else {
+    $font  = New-Object System.Drawing.Font("Arial", 9, [System.Drawing.FontStyle]::Bold)
     $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(31, 78, 121))
     $g.DrawString("E2Z", $font, $brush, 2, 11)
     $font.Dispose(); $brush.Dispose()
@@ -52,13 +53,13 @@ else {
 }
 $g.Dispose()
 
-# Bitmap als PNG-Bytes fuer ZIP-Einbettung sichern
+# Als BMP speichern (LoadPicture in VBA unterstuetzt BMP zuverlaessig)
 $ms = New-Object System.IO.MemoryStream
-$bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png)
+$bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Bmp)
 $bmp.Dispose()
-$pngBytes = $ms.ToArray()
+[System.IO.File]::WriteAllBytes($IconPath, $ms.ToArray())
 $ms.Dispose()
-Write-Host "    $($pngBytes.Length) Bytes PNG generiert." -ForegroundColor Green
+Write-Host "    Icon gespeichert: $IconPath" -ForegroundColor Green
 
 # =============================================================================
 # VBA-Code: direkt eingebettet (vba_src\ ist nur ein lesbares Backup, keine Build-Quelle)
@@ -145,20 +146,30 @@ Public Function CreateDeepPath(ByVal ZielPfad As String) As Boolean
         CreateDeepPath = False
     End If
 End Function
+
+' getImage-Callback fuer den Ribbon-Button: laedt horse.bmp aus dem AddIn-Verzeichnis
+Public Sub GetHorseImage(control As IRibbonControl, ByRef returnedVal)
+    Dim imgPath As String
+    imgPath = ThisWorkbook.Path & "\horse.bmp"
+    On Error Resume Next
+    If Dir(imgPath) <> "" Then
+        Set returnedVal = LoadPicture(imgPath)
+    End If
+End Sub
 '@
 
 # =============================================================================
-# Ribbon-XML: image="rIdHorse" referenziert das eingebettete PNG per Relationship-ID
+# Ribbon-XML: getImage="GetHorseImage" ruft VBA-Callback auf (kein OPC-Bild-Embedding)
 # =============================================================================
 $CustomUIXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<customUI xmlns="http://schemas.microsoft.com/office/2006/01/customui">
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
   <ribbon>
     <tabs>
       <tab id="tabExcel2Zugferd" label="Excel2ZUGFeRD">
         <group id="grpExcel2Zugferd" label="ZUGFeRD">
           <button id="btnMake"
                   label="Excel2Zugferd"
-                  image="rIdHorse"
+                  getImage="GetHorseImage"
                   size="large"
                   onAction="RunMake"
                   screentip="Excel zu ZUGFeRD konvertieren"
@@ -172,7 +183,7 @@ $CustomUIXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 # =============================================================================
 # [1/2]  XLAM via Excel COM erzeugen
 # =============================================================================
-Write-Host "`n[1/2] Erstelle XLAM via Excel..." -ForegroundColor White
+Write-Host "`n[1/3] Erstelle XLAM via Excel..." -ForegroundColor White
 
 try {
     $excel = New-Object -ComObject Excel.Application
@@ -213,7 +224,7 @@ Write-Host "    XLAM in Tempdatei gespeichert." -ForegroundColor Green
 # =============================================================================
 # [2/2]  Ribbon-XML in ZIP einbetten
 # =============================================================================
-Write-Host "`n[2/2] Bettet Ribbon-XML ein..." -ForegroundColor White
+Write-Host "`n[2/3] Bettet Ribbon-XML ein..." -ForegroundColor White
 
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -227,7 +238,7 @@ try {
     $ct = $r.ReadToEnd(); $r.Close()
     if ($ct -notmatch "customUI") {
         $ct = $ct -replace '</Types>',
-        '<Default Extension="png" ContentType="image/png"/><Override PartName="/customUI/customUI.xml" ContentType="application/xml"/></Types>'
+        '<Override PartName="/customUI/customUI14.xml" ContentType="application/xml"/></Types>'
         $ctE.Delete()
         $w = New-Object System.IO.StreamWriter($zip.CreateEntry("[Content_Types].xml").Open(), $enc)
         $w.Write($ct); $w.Flush(); $w.Close()
@@ -240,40 +251,26 @@ try {
     $rel = $r.ReadToEnd(); $r.Close()
     if ($rel -notmatch "extensibility") {
         $rel = $rel -replace '</Relationships>',
-        '<Relationship Id="rIdUI" Type="http://schemas.microsoft.com/office/2006/relationships/ui/extensibility" Target="customUI/customUI.xml"/></Relationships>'
+        '<Relationship Id="rIdUI" Type="http://schemas.microsoft.com/office/2007/relationships/ui/extensibility" Target="customUI/customUI14.xml"/></Relationships>'
         $rE.Delete()
         $w = New-Object System.IO.StreamWriter($zip.CreateEntry("_rels/.rels").Open(), $enc)
         $w.Write($rel); $w.Flush(); $w.Close()
         Write-Host "    _rels/.rels aktualisiert." -ForegroundColor Green
     }
 
-    # customUI/customUI.xml
-    $ex = $zip.GetEntry("customUI/customUI.xml")
+    # customUI/customUI14.xml
+    $ex = $zip.GetEntry("customUI/customUI14.xml")
     if ($ex) { $ex.Delete() }
-    $w = New-Object System.IO.StreamWriter($zip.CreateEntry("customUI/customUI.xml").Open(), $enc)
+    $ex = $zip.GetEntry("customUI/customUI.xml")   # alten Eintrag entfernen falls vorhanden
+    if ($ex) { $ex.Delete() }
+    $w = New-Object System.IO.StreamWriter($zip.CreateEntry("customUI/customUI14.xml").Open(), $enc)
     $w.Write($CustomUIXml); $w.Flush(); $w.Close()
-    Write-Host "    customUI/customUI.xml angelegt." -ForegroundColor Green
+    Write-Host "    customUI/customUI14.xml angelegt." -ForegroundColor Green
 
-    # customUI/_rels/customUI.xml.rels  (verknuepft rIdHorse -> images/horse.png)
-    $customUIRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rIdHorse"
-    Type="http://schemas.microsoft.com/office/2007/relationships/ui/extensibility/image"
-    Target="images/horse.png"/>
-</Relationships>'
-    $ex = $zip.GetEntry("customUI/_rels/customUI.xml.rels")
-    if ($ex) { $ex.Delete() }
-    $w = New-Object System.IO.StreamWriter($zip.CreateEntry("customUI/_rels/customUI.xml.rels").Open(), $enc)
-    $w.Write($customUIRels); $w.Flush(); $w.Close()
-    Write-Host "    customUI/_rels/customUI.xml.rels angelegt." -ForegroundColor Green
-
-    # customUI/images/horse.png  (das eigentliche Icon-Bild)
-    $ex = $zip.GetEntry("customUI/images/horse.png")
-    if ($ex) { $ex.Delete() }
-    $imgStream = $zip.CreateEntry("customUI/images/horse.png").Open()
-    $imgStream.Write($pngBytes, 0, $pngBytes.Length)
-    $imgStream.Close()
-    Write-Host "    customUI/images/horse.png eingebettet ($($pngBytes.Length) Bytes)." -ForegroundColor Green
+    # Alte rels/Bild-Eintraege aus frueheren Builds entfernen (falls vorhanden)
+    foreach ($stale in @("customUI/_rels/customUI14.xml.rels","customUI/_rels/customUI.xml.rels","customUI/images/horse.png")) {
+        $ex = $zip.GetEntry($stale); if ($ex) { $ex.Delete() }
+    }
 
 }
 finally {
@@ -295,8 +292,10 @@ catch {
 }
 
 # =============================================================================
+Write-Host "`n[3/3] Fertig!" -ForegroundColor White
 Write-Host "`n=== Fertig! ===" -ForegroundColor Cyan
 Write-Host "AddIn-Datei: $OutputPath"
+Write-Host "Icon-Datei:  $IconPath  (muss neben der XLAM liegen)"
 Write-Host ""
 Write-Host "Installation:" -ForegroundColor White
 Write-Host "  1. Excel oeffnen"

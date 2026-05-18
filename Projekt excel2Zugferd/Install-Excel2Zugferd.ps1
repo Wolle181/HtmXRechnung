@@ -92,6 +92,16 @@ Write-Host "Kopiere AddIn nach: $targetPath"
 Copy-Item $XlamSource $targetPath -Force
 Write-Host "  Kopiert." -ForegroundColor Green
 
+# Icon-Datei mitkopieren (liegt neben der XLAM, wird per VBA-Callback geladen)
+$iconSource = Join-Path (Split-Path $XlamSource -Parent) "horse.bmp"
+if (Test-Path $iconSource) {
+    Copy-Item $iconSource (Join-Path $targetDir "horse.bmp") -Force
+    Write-Host "  horse.bmp kopiert." -ForegroundColor Green
+} else {
+    Write-Host "  HINWEIS: horse.bmp nicht gefunden - Icon wird im Ribbon nicht angezeigt." -ForegroundColor Yellow
+    Write-Host "  Bitte Create-Excel2ZugferdAddIn.ps1 erneut ausfuehren." -ForegroundColor Yellow
+}
+
 # Registrieren: zuerst COM, bei Fehler Registry-Fallback
 Write-Host "Registriere AddIn in Excel..."
 $registered = $false

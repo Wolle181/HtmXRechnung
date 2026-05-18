@@ -14,3 +14,5 @@ if %ERRORLEVEL% EQU 0 (
     echo FEHLER bei der Installation. Bitte Fehlermeldung oben beachten.
 )
 echo.
+
+pause

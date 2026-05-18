@@ -19,7 +19,8 @@
       "Read(//tmp/**)",
       "PowerShell(powershell -ExecutionPolicy Bypass -File \"d:\\\\UBXGitHub\\\\HtmXRechnung\\\\Projekt excel2Zugferd\\\\_analyze_vba.ps1\")",
       "PowerShell(powershell -ExecutionPolicy Bypass -File \"d:\\\\UBXGitHub\\\\HtmXRechnung\\\\Projekt excel2Zugferd\\\\_compare_xlam.ps1\")",
-      "PowerShell(powershell -ExecutionPolicy Bypass -File \"d:\\\\UBXGitHub\\\\HtmXRechnung\\\\Projekt excel2Zugferd\\\\_check_installed.ps1\")"
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"d:\\\\UBXGitHub\\\\HtmXRechnung\\\\Projekt excel2Zugferd\\\\_check_installed.ps1\")",
+      "PowerShell(Get-ChildItem *)"
     ]
   }
 }

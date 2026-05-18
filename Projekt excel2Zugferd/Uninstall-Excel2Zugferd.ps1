@@ -103,7 +103,7 @@ Write-Host ""
 Write-Host "2. Bereinige Registry-Eintraege..."
 Unregister-ViaRegistry
 
-# 3. XLAM-Datei loeschen
+# 3. XLAM- und Icon-Datei loeschen
 Write-Host ""
 Write-Host "3. Loesche AddIn-Datei(en)..."
 $deleted = $false
@@ -119,6 +119,12 @@ foreach ($path in @(
 }
 if (-not $deleted) {
     Write-Host "  Keine XLAM-Datei gefunden." -ForegroundColor Yellow
+}
+
+$iconPath = "$env:APPDATA\Microsoft\AddIns\horse.bmp"
+if (Test-Path $iconPath) {
+    Remove-Item $iconPath -Force
+    Write-Host "  Geloescht: $iconPath" -ForegroundColor Green
 }
 
 Write-Host ""
