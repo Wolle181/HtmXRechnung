@@ -33,7 +33,7 @@ There are no automated tests.
 
 ### Invocation Flow
 
-The Excel ribbon button calls `RunMake()` in `vba_src/Excel2ZugferdMakro.bas`, which shells out to:
+The Excel ribbon button calls `RunMake()` in its makro collection, which shells out to:
 ```
 excel2zugferd.exe <sheet_number> "<excel_file_path>"
 ```
@@ -83,11 +83,11 @@ The executable supports two modes:
 ### Configuration
 Company master data and column mappings are stored in an INI file (path configurable at runtime). Field names are defined in `stammdaten.py`. The INI stores: company name, address, tax ID (Steuernummer/USt-IdNr), IBAN/BIC, and Excel column/row offsets for each invoice field.
 
-### VBA Source (`vba_src/`)
+### VBA Source (`vba_export/`)
 - `Excel2ZugferdMakro.bas` — The ribbon button handler; calls `exe` and shows result in MsgBox
 - `DebugTools.bas` — Utilities for exporting VBA modules during development
 
-**IMPORTANT:** `vba_src/` is a **read-only, human-readable backup** only. It is NOT a build source.
+**IMPORTANT:** `vba_export/` is a **read-only, human-readable backup** only. It is NOT a build source.
 The VBA code is embedded directly as a here-string inside `Create-Excel2Zugferd.ps1`.
-When changing VBA logic, edit the here-string in the PS1 file — then update `vba_src/` manually as a mirror.
-Never modify `Create-Excel2Zugferd.ps1` to read from `vba_src/` at build time.
+When changing VBA logic, edit the here-string in the PS1 file — then update `vba_export/` manually as a mirror.
+Never modify `Create-Excel2Zugferd.ps1` to read from `vba_export/` at build time.

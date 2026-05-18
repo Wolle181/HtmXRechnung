@@ -5,8 +5,7 @@ Public Sub ExportAllVbaModules()
     Dim vbComp As Object
     Dim exportPath As String
 
-    ' Zielordner festlegen
-    exportPath = ThisWorkbook.Path & "\vba_export" & Format(Now, "_yyyymmdd_hhnnss") & "\"
+    exportPath = ActiveWorkbook.Path & "\vba_export" & Format(Now, "_yyyymmdd_hhnnss") & "\"
     MkDir exportPath
 
     On Error GoTo Fehler
@@ -21,9 +20,9 @@ Public Sub ExportAllVbaModules()
     MsgBox "Export abgeschlossen nach: " & vbCrLf & exportPath
     On Error GoTo 0
     Exit Sub
-    
+
 Fehler:
-    MsgBox "Export nicht möglich. Wurde " & vbCrLf & "'Zugriff auf das VBA-Projektobjektmodell vertrauen'" & vbCrLf & "zugelassen?"
+    MsgBox "Export nicht moeglich. Wurde " & vbCrLf & "'Zugriff auf das VBA-Projektobjektmodell vertrauen'" & vbCrLf & "zugelassen?"
 End Sub
 
 Private Function GetFileExtension(typeId As Integer) As String
@@ -38,4 +37,3 @@ End Function
 Public Sub ResetCursor()
     Application.Cursor = xlDefault
 End Sub
-

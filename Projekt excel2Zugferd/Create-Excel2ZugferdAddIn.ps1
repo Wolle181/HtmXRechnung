@@ -5,7 +5,7 @@
 # manchen Excel-Installationen nicht unterstuetzt).
 
 $OutputPath = Join-Path (Get-Location).Path "Excel2Zugferd.xlam"
-$IconPath   = Join-Path (Get-Location).Path "horse.bmp"
+$IconPath = Join-Path (Get-Location).Path "horse.bmp"
 
 # =============================================================================
 # [0/3]  Pferd-Icon erzeugen: Schachspringer U+265E aus System-Font als BMP
@@ -39,13 +39,14 @@ if ($usedFontName) {
         [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
     $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(31, 78, 121))
     $sf = New-Object System.Drawing.StringFormat
-    $sf.Alignment     = [System.Drawing.StringAlignment]::Center
+    $sf.Alignment = [System.Drawing.StringAlignment]::Center
     $sf.LineAlignment = [System.Drawing.StringAlignment]::Center
     $g.DrawString($knightChar, $font, $brush, (New-Object System.Drawing.RectangleF(0, 0, 32, 32)), $sf)
     $font.Dispose(); $brush.Dispose()
     Write-Host "    Springer mit Font '$usedFontName' gerendert." -ForegroundColor Green
-} else {
-    $font  = New-Object System.Drawing.Font("Arial", 9, [System.Drawing.FontStyle]::Bold)
+}
+else {
+    $font = New-Object System.Drawing.Font("Arial", 9, [System.Drawing.FontStyle]::Bold)
     $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(31, 78, 121))
     $g.DrawString("E2Z", $font, $brush, 2, 11)
     $font.Dispose(); $brush.Dispose()
@@ -159,6 +160,50 @@ End Sub
 '@
 
 # =============================================================================
+# VBA-Code DebugTools: direkt eingebettet (vba_src\ ist nur ein lesbares Backup)
+# =============================================================================
+$DebugToolsCode = @'
+Option Explicit
+
+Public Sub ExportAllVbaModules()
+    Dim vbComp As Object
+    Dim exportPath As String
+
+    exportPath = ActiveWorkbook.Path & "\vba_export" & Format(Now, "_yyyymmdd_hhnnss") & "\"
+    MkDir exportPath
+
+    On Error GoTo Fehler
+
+    For Each vbComp In ThisWorkbook.VBProject.VBComponents
+        Select Case vbComp.Type
+            Case 1, 2, 3 ' 1=Standardmodul, 2=Klassenmodul, 3=UserForm
+                vbComp.Export exportPath & vbComp.Name & "." & GetFileExtension(vbComp.Type)
+        End Select
+    Next vbComp
+
+    MsgBox "Export abgeschlossen nach: " & vbCrLf & exportPath
+    On Error GoTo 0
+    Exit Sub
+
+Fehler:
+    MsgBox "Export nicht moeglich. Wurde " & vbCrLf & "'Zugriff auf das VBA-Projektobjektmodell vertrauen'" & vbCrLf & "zugelassen?"
+End Sub
+
+Private Function GetFileExtension(typeId As Integer) As String
+    Select Case typeId
+        Case 1: GetFileExtension = "bas"
+        Case 2: GetFileExtension = "cls"
+        Case 3: GetFileExtension = "frm"
+        Case Else: GetFileExtension = "txt"
+    End Select
+End Function
+
+Public Sub ResetCursor()
+    Application.Cursor = xlDefault
+End Sub
+'@
+
+# =============================================================================
 # Ribbon-XML: getImage="GetHorseImage" ruft VBA-Callback auf (kein OPC-Bild-Embedding)
 # =============================================================================
 $CustomUIXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -201,8 +246,11 @@ try {
     $mod = $wb.VBProject.VBComponents.Add(1)
     $mod.Name = "Excel2ZugferdMakro"
     $mod.CodeModule.AddFromString($VBACode)
+    $modDbg = $wb.VBProject.VBComponents.Add(1)
+    $modDbg.Name = "DebugTools"
+    $modDbg.CodeModule.AddFromString($DebugToolsCode)
     $vbaOK = $true
-    Write-Host "    VBA-Modul eingefuegt." -ForegroundColor Green
+    Write-Host "    VBA-Module eingefuegt (Excel2ZugferdMakro, DebugTools)." -ForegroundColor Green
 }
 catch {
     Write-Host "    WARNUNG: VBA-Projektzugriff verweigert." -ForegroundColor Yellow
@@ -268,7 +316,7 @@ try {
     Write-Host "    customUI/customUI14.xml angelegt." -ForegroundColor Green
 
     # Alte rels/Bild-Eintraege aus frueheren Builds entfernen (falls vorhanden)
-    foreach ($stale in @("customUI/_rels/customUI14.xml.rels","customUI/_rels/customUI.xml.rels","customUI/images/horse.png")) {
+    foreach ($stale in @("customUI/_rels/customUI14.xml.rels", "customUI/_rels/customUI.xml.rels", "customUI/images/horse.png")) {
         $ex = $zip.GetEntry($stale); if ($ex) { $ex.Delete() }
     }
 

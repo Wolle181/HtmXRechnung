@@ -1,4 +1,4 @@
-'Attribute VB_Name = "Excel2ZugferdMakro"
+Attribute VB_Name = "Excel2ZugferdMakro"
 Option Explicit
 
 ' API-Funktion zum Erstellen tiefer Pfadstrukturen
@@ -30,7 +30,7 @@ Public Sub RunMake(Optional control As IRibbonControl = Nothing)
     tabsheetNummer = ActiveSheet.Index - 1
     sheetName = ActiveSheet.Name
 
-    ' Kleine Prüfung, ob Inhalt des aktuellen Sheets überhaupt geeignet ist für eix XL2Zugferd-Rechnung
+    ' Kleine Pruefung, ob Inhalt des aktuellen Sheets ueberhaupt geeignet ist fuer eine XL2Zugferd-Rechnung
     If ActiveSheet.Range("A1").Value <> "An:" Then
         Application.Cursor = xlDefault
         MsgBox "Das aktuelle Sheet scheint keinen Excel2Zugferd-Inhalt zu haben!"
@@ -58,7 +58,7 @@ Public Sub RunMake(Optional control As IRibbonControl = Nothing)
     Set wsh = Nothing
 
     Application.Cursor = xlDefault
-    MsgBox "ZUGFeRD-Rechnung f?r Tabellenblatt """ & sheetName & """ wurde erzeugt.", _
+    MsgBox "ZUGFeRD-Rechnung fuer Tabellenblatt """ & sheetName & """ wurde erzeugt.", _
            vbInformation, "Excel2ZUGFeRD"
     Exit Sub
 
@@ -69,16 +69,11 @@ ErrHandler:
 End Sub
 
 
-''' <summary>
-''' Erstellt einen vollständigen Pfad inklusive aller Unterverzeichnisse.
-''' </summary>
-''' <param name="ZielPfad">Der zu erstellende Pfad.</param>
-''' <returns>True, wenn erfolgreich oder bereits existent.</returns>
 Public Function CreateDeepPath(ByVal ZielPfad As String) As Boolean
-    ' Die API-Funktion benötigt zwingend einen abschließenden Backslash
+    ' Die API-Funktion benoetigt zwingend einen abschliessenden Backslash
     If Right(ZielPfad, 1) <> "\" Then ZielPfad = ZielPfad & "\"
-    
-    ' Rückgabewert der API ist 1 bei Erfolg, 0 bei Fehler
+
+    ' Rueckgabewert der API ist 1 bei Erfolg, 0 bei Fehler
     If MakeSureDirectoryPathExists(ZielPfad) <> 0 Then
         CreateDeepPath = True
     Else
@@ -86,5 +81,13 @@ Public Function CreateDeepPath(ByVal ZielPfad As String) As Boolean
     End If
 End Function
 
-
+' getImage-Callback fuer den Ribbon-Button: laedt horse.bmp aus dem AddIn-Verzeichnis
+Public Sub GetHorseImage(control As IRibbonControl, ByRef returnedVal)
+    Dim imgPath As String
+    imgPath = ThisWorkbook.Path & "\horse.bmp"
+    On Error Resume Next
+    If Dir(imgPath) <> "" Then
+        Set returnedVal = LoadPicture(imgPath)
+    End If
+End Sub
 
